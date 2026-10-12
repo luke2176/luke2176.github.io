@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Brand</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root {
+    --bg: #f5f4ef;
+    --surface: #ffffff;
+    --ink: #13141a;
+    --muted: #666a75;
+    --line: #dcdad2;
+    --accent: #3d3bf3;
+    --accent-soft: #e6e6ff;
+    --on-accent: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e0f14; --surface: #171922; --ink: #f1f1ee; --muted: #9a9eab;
+      --line: #2a2d3a; --accent: #8e8cff; --accent-soft: #23234a; --on-accent: #0e0f14;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e0f14; --surface: #171922; --ink: #f1f1ee; --muted: #9a9eab;
+    --line: #2a2d3a; --accent: #8e8cff; --accent-soft: #23234a; --on-accent: #0e0f14;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    background: var(--bg); color: var(--ink);
+    line-height: 1.65; word-break: keep-all;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  ul { list-style: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* 내비게이션 */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+  .logo { font-weight: 800; letter-spacing: -0.02em; font-size: 17px; white-space: nowrap; }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 22px; font-size: 14px; color: var(--muted); }
+  .nav-links a:hover { color: var(--ink); }
+  #themeBtn {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    cursor: pointer; font-size: 15px; flex: none;
+  }
+  @media (max-width: 720px) { .nav-links a { display: none; } }
+
+  /* 히어로 */
+  .hero { padding: 88px 0 56px; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 270px; gap: 52px; align-items: end; }
+  .portrait {
+    aspect-ratio: 3 / 4; border-radius: 24px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--surface);
+    box-shadow: 14px 14px 0 var(--accent); margin: 0 14px 14px 0;
+  }
+  .portrait img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  @media (max-width: 860px) {
+    .hero { padding-top: 48px; }
+    .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+    .portrait { order: -1; width: 150px; border-radius: 18px; box-shadow: 8px 8px 0 var(--accent); }
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.16em; color: var(--accent);
+    text-transform: uppercase;
+  }
+  .eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--accent); }
+  .hero h1 {
+    margin-top: 22px;
+    font-size: clamp(34px, 5.8vw, 68px); font-weight: 800;
+    line-height: 1.08; letter-spacing: -0.045em;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .lead { margin-top: 28px; max-width: 620px; font-size: clamp(16px, 2vw, 19px); color: var(--muted); }
+  .hero .lead b { color: var(--ink); font-weight: 600; }
+  .roles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+  .roles li {
+    padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--ink);
+  }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 26px; border-radius: 999px; font-weight: 700; font-size: 15px;
+    background: var(--ink); color: var(--bg); transition: transform .15s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.line { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    margin-top: 72px; border-top: 2px solid var(--ink);
+  }
+  .stats div { padding: 20px 16px 0 0; }
+  .stats b { display: block; font-size: clamp(30px, 4.6vw, 52px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stats b small { font-size: .45em; font-weight: 600; color: var(--muted); letter-spacing: 0; }
+  .stats span { font-size: 13px; color: var(--muted); }
+  @media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); row-gap: 8px; } }
+
+  /* 키워드 띠 */
+  .ticker { overflow: hidden; border-block: 1px solid var(--line); padding: 14px 0; margin-top: 40px; }
+  .ticker-track { display: flex; gap: 40px; width: max-content; animation: slide 36s linear infinite; }
+  .ticker span { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; color: var(--muted); white-space: nowrap; }
+  .ticker span::after { content: "✦"; margin-left: 40px; color: var(--accent); }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  /* 섹션 공통 */
+  section.wrap { padding-top: 136px; }
+  @media (max-width: 720px) { section.wrap { padding-top: 96px; } }
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 44px; }
+  .sec-head .no { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; }
+  .sec-head h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.2; }
+  .sec-desc { margin: -28px 0 40px; color: var(--muted); max-width: 640px; }
+
+  /* 강점 */
+  .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 1000px) { .pillars { grid-template-columns: repeat(2, 1fr); } }
+  .pillar {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    padding: 28px 26px; display: flex; flex-direction: column;
+  }
+  .pillar .k { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: var(--accent); }
+  .pillar h3 { margin: 10px 0 12px; font-size: 22px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.3; }
+  .pillar p { color: var(--muted); font-size: 15px; }
+  .pillar ul { margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--line); font-size: 14px; }
+  .pillar li { padding: 3px 0 3px 16px; position: relative; }
+  .pillar li::before { content: ""; position: absolute; left: 0; top: 13px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  @media (max-width: 600px) { .pillars { grid-template-columns: 1fr; } }
+
+  /* 경력 타임라인 */
+  .timeline { border-left: 2px solid var(--line); margin-left: 6px; }
+  .tl-item { position: relative; padding: 0 0 36px 30px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before {
+    content: ""; position: absolute; left: -8px; top: 6px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--bg); border: 3px solid var(--accent);
+  }
+  .tl-date { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tl-item h3 { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+  .tl-org { font-size: 14px; font-weight: 600; color: var(--accent); }
+  .tl-item ul.desc { margin-top: 10px; font-size: 15px; color: var(--muted); }
+  .tl-item ul.desc li { padding-left: 14px; position: relative; }
+  .tl-item ul.desc li::before { content: "–"; position: absolute; left: 0; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tags li { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+
+  /* 프로젝트 */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .filters button {
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    padding: 8px 16px; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent; color: var(--muted);
+  }
+  .filters button.on { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .filters button .n { opacity: .6; margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .projects { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    padding: 24px; display: flex; flex-direction: column;
+    transition: transform .18s, border-color .18s;
+  }
+  .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .card.hide { display: none; }
+  .card-top { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .card-top .role { font-weight: 700; color: var(--accent); text-align: right; }
+  .card h3 { margin: 10px 0 8px; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.4; }
+  .card p { font-size: 14.5px; color: var(--muted); flex: 1; }
+  .award-badge {
+    display: inline-block; margin-top: 12px; align-self: flex-start;
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+    background: var(--ink); color: var(--bg);
+  }
+  @media (max-width: 760px) { .projects { grid-template-columns: 1fr; } }
+
+  /* 2단 목록 (연구·수상 / 학력·자격) */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; gap: 40px; } }
+  .two h3.sub { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 6px; }
+  .rows li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .rows .t { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; line-height: 1.45; }
+  .rows .m { font-size: 13px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  /* 연락처 */
+  .contact {
+    margin-top: 136px; background: var(--ink); color: var(--bg);
+    border-radius: 28px; padding: clamp(36px, 6vw, 72px);
+  }
+  .contact h2 { font-size: clamp(28px, 5vw, 54px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.15; }
+  .contact p { margin-top: 14px; opacity: .7; max-width: 520px; }
+  .contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+  .contact-links a {
+    padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 15px;
+    border: 1px solid color-mix(in srgb, var(--bg) 40%, transparent);
+  }
+  .contact-links a:hover { background: var(--bg); color: var(--ink); }
+  .contact-links a.todo { border-style: dashed; opacity: .55; pointer-events: none; }
+
+  footer { padding: 36px 0 48px; font-size: 13px; color: var(--muted); text-align: center; }
+
+  /* 스크롤 등장 */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s, transform .6s; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .ticker-track { animation: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a href="#top" class="logo" id="logo"></a>
+    <div class="nav-links">
+      <a href="#about">A to Z</a>
+      <a href="#experience">경력</a>
+      <a href="#projects">프로젝트</a>
+      <a href="#research">연구·수상</a>
+      <a href="#contact">연락처</a>
+      <button id="themeBtn" aria-label="테마 전환">◐</button>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+  <header class="hero wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow" id="eyebrow"></div>
+        <h1 id="headline"></h1>
+        <p class="lead" id="lead"></p>
+        <ul class="roles" id="roles"></ul>
+        <div class="cta">
+          <a class="btn" href="#projects">프로젝트 보기 ↓</a>
+          <a class="btn line" href="#contact">연락하기</a>
+        </div>
+      </div>
+      <figure class="portrait" id="portrait"></figure>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="ticker" aria-hidden="true"><div class="ticker-track" id="ticker"></div></div>
+
+  <section id="about" class="wrap">
+    <div class="sec-head reveal"><span class="no">01</span><h2>기획부터 배포까지, A to Z</h2></div>
+    <p class="sec-desc reveal">문제를 찾는 일부터 동작하는 서비스로 내놓는 일까지, 한 사람이 끝까지 책임질 수 있도록 단계마다 경험을 쌓았습니다.</p>
+    <div class="pillars" id="pillars"></div>
+  </section>
+
+  <section id="experience" class="wrap">
+    <div class="sec-head reveal"><span class="no">02</span><h2>경력</h2></div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section id="projects" class="wrap">
+    <div class="sec-head reveal"><span class="no">03</span><h2>프로젝트 &amp; 활동</h2></div>
+    <div class="filters" id="filters"></div>
+    <div class="projects" id="projectGrid"></div>
+  </section>
+
+  <section id="research" class="wrap">
+    <div class="sec-head reveal"><span class="no">04</span><h2>연구 &amp; 수상</h2></div>
+    <div class="two">
+      <div class="reveal"><h3 class="sub">논문</h3><ul class="rows" id="papers"></ul></div>
+      <div class="reveal"><h3 class="sub">수상</h3><ul class="rows" id="awards"></ul></div>
+    </div>
+  </section>
+
+  <section id="education" class="wrap">
+    <div class="sec-head reveal"><span class="no">05</span><h2>학력 &amp; 자격</h2></div>
+    <div class="two">
+      <div class="reveal"><h3 class="sub">학력</h3><ul class="rows" id="education-list"></ul></div>
+      <div class="reveal"><h3 class="sub">자격증</h3><ul class="rows" id="certs"></ul></div>
+    </div>
+    <div class="reveal" style="margin-top:40px">
+      <h3 class="sub" style="font-size:13px;font-weight:700;letter-spacing:.12em;color:var(--muted);margin-bottom:6px">봉사활동</h3>
+      <ul class="rows" id="volunteer"></ul>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section id="contact" class="contact reveal" style="padding-top:clamp(36px, 6vw, 72px)">
+      <h2 id="contactTitle"></h2>
+      <p id="contactText"></p>
+      <div class="contact-links" id="contactLinks"></div>
+    </section>
+  </div>
+</main>
+
+<footer><div class="wrap" id="footer"></div></footer>
+
+<script>
+(() => {
+  'use strict';
+
+  // =====================================================================
+  //  내용 수정은 여기서: 아래 데이터만 바꾸면 페이지에 그대로 반영됩니다.
+  // =====================================================================
+  const PROFILE = {
+    name: '이상민',
+    nameEn: 'Lee Sang Min',
+    photo: '증명사진.jpeg',
+    eyebrow: 'Lee Sang Min · AI Service Planner',
+    // <em>…</em> 로 감싼 부분이 강조색으로 표시됩니다
+    headline: '기획부터 배포까지,<br><em>A to Z</em>를 해내는<br>AI 서비스 기획자',
+    lead: '문제를 정의하는 기획에서 멈추지 않습니다. <b>리서치, 설계, 데이터·AI 검증, 개발</b>까지 ' +
+          '직접 경험하며 아이디어를 동작하는 서비스로 끝까지 가져갑니다.',
+    roles: ['AI Service Planning', 'UX Research', 'Data · AI', 'Build & Ship'],
+    contactTitle: '처음부터 끝까지<br>함께 만들 문제를 찾습니다.',
+    contactText: 'AI 서비스 기획과 구현에 관한 제안이라면 언제든 환영합니다.',
+    // 값이 비어 있으면 점선 자리 표시로 나옵니다
+    contacts: [
+      { label: 'LinkedIn', url: 'https://www.linkedin.com/in/luke2176' }
+    ]
+  };
+
+  const STATS = [
+    { value: '4.31', unit: '/4.5', label: '학점 (경영정보 전공)' },
+    { value: '4', unit: '회', label: '수상' },
+    { value: '2', unit: '편', label: '논문' },
+    { value: '3', unit: '회', label: '인턴십' }
+  ];
+
+  const KEYWORDS = ['AI AGENT', 'SERVICE PLANNING', 'DESIGN THINKING', 'UX RESEARCH', 'PYTHON', 'DATA ENGINEERING', 'GENERATIVE AI', 'PROJECT MANAGEMENT', 'VLM', 'VIBE CODING'];
+
+  const PILLARS = [
+    {
+      k: '01 · DISCOVER', title: '문제 발견',
+      text: 'UX 리서치와 디자인씽킹으로 사용자가 실제로 겪는 문제부터 찾습니다.',
+      proof: ['UX 리서치 기반 서비스 개선 제안서', '타사 벤치마킹·인사이트 보고서', '‘Dream Production’ UX 리서치']
+    },
+    {
+      k: '02 · PLAN', title: '기획·설계',
+      text: '찾아낸 문제를 서비스 구조와 시스템 설계로 옮기고, PM으로 팀을 이끕니다.',
+      proof: ['PM으로 이끈 프로젝트 6건', '‘K*path’ On-premise AI 학사시스템 설계', '‘도리’로 캡스톤디자인 우수상']
+    },
+    {
+      k: '03 · VALIDATE', title: '데이터·AI 검증',
+      text: '데이터와 모델로 기획의 근거를 만들고, 결과를 논문과 보고서로 검증합니다.',
+      proof: ['상권분석·인구통계·산업업종 DB 구축', '한국어 가짜뉴스 탐지 논문 2편', 'CRM 전략으로 Data Station 최우수상']
+    },
+    {
+      k: '04 · BUILD & SHIP', title: '개발·배포',
+      text: 'AI 에이전트와 바이브 코딩으로 직접 구현해, 동작하는 서비스로 내놓습니다.',
+      proof: ['Global Startup Hackathon Grand Prize', 'Claude Code 기반 ‘공생의 나무’ 챗봇 구축', '‘Konnect’ 프론트엔드 개발']
+    }
+  ];
+
+  const EXPERIENCE = [
+    {
+      date: '2026.07 – 2026.08', title: 'Undergraduate Researcher', org: '국민대학교 · 인턴',
+      desc: ['한국어 유튜브 가짜뉴스 이미지 자동화 파이프라인 구축 및 VLM 성능개선·활용 방안 연구'],
+      tags: ['딥러닝', '데이터 엔지니어링']
+    },
+    {
+      date: '2026.02 – 2026.03', title: 'Educational Product Manager', org: 'Ducogen · 인턴',
+      desc: ['IT 자격증(AZ-900, AI-900) 학습 페이지 기획 및 구축'],
+      tags: ['서비스 기획']
+    },
+    {
+      date: '2025.05 – 2025.08', title: 'Data Analyst', org: '(주)아이디이노랩 · 인턴',
+      desc: ['Python 기반 상권분석DB, 인구통계DB, 산업업종DB 모델링 및 구축', 'UX 리서치 기반 서비스 개선 제안서 작성', '타사 벤치마킹 및 인사이트 보고서 작성'],
+      tags: ['데이터 엔지니어링']
+    }
+  ];
+
+  const CATEGORIES = [
+    { id: 'all', label: '전체' },
+    { id: 'pm', label: '기획·PM' },
+    { id: 'dev', label: '개발' },
+    { id: 'research', label: '연구' },
+    { id: 'edu', label: '교육·활동' }
+  ];
+
+  const PROJECTS = [
+    { cat: 'pm', date: '2026.08 – 현재', role: 'PM · Front-end', title: '‘Konnect’ 서비스 기획',
+      desc: '교내 프로그램의 공지를 학생 맞춤형으로 제공하며, 기존 프로그램 참여자와 학생을 연결하고 일정 관리를 돕는 서비스',
+      tags: ['프로젝트 관리', '시스템 디자인'] },
+    { cat: 'pm', date: '2026.09', role: 'PM', title: 'AWS Kirothon',
+      desc: '학교의 모든 공지사항을 사용자에게 맞춤형으로 추천하며 일정을 관리해주는 AI Agent',
+      tags: ['디자인사고', 'AI 에이전트'] },
+    { cat: 'dev', date: '2026.05 – 2026.07', role: 'Team Leader · Dev', title: 'KMU x TUIT Global Startup Hackathon 2026',
+      desc: 'OCR을 통해 할랄과 하람을 구별해주는 AI 서비스 구현',
+      tags: ['디자인사고', 'AI 에이전트'], award: '🏆 Grand Prize' },
+    { cat: 'dev', date: '2026.05 – 2026.06', role: 'Dev', title: 'HUSS x (주)뤼튼테크놀로지스 ‘공생의 나무’ 챗봇',
+      desc: 'Claude Code를 활용한 역량 성장 대시보드 및 진로 상담 챗봇 구축',
+      tags: ['바이브 코딩', 'AI 에이전트'] },
+    { cat: 'pm', date: '2026.05 – 2026.06', role: 'PM', title: '국민대학교 ‘K*path’ 시스템',
+      desc: 'NCS 기반 직무매핑과 로드맵을 제공하는 On-premise AI 학사시스템 설계',
+      tags: ['시스템 디자인', '시스템분석'] },
+    { cat: 'pm', date: '2026.03 – 2026.06', role: 'PM', title: '국민대학교 ‘도리’ 서비스',
+      desc: '생성형 AI, 디자인씽킹을 활용한 사내 소통 관리 B2B AI Agent 서비스 기획 및 구축',
+      tags: ['프로젝트 관리', '디자인사고'], award: '🏆 캡스톤디자인 경진대회 우수상' },
+    { cat: 'edu', date: '2025.12 – 2026.03', role: '수료', title: '새싹캠퍼스 커머셜 AI 융복합 기획자 정예과정 7기',
+      desc: '생성형 AI, 언리얼 엔진을 활용한 기획, 영상, 마케팅 실습 및 기업연계 프로젝트',
+      tags: ['생성형 AI', '언리얼 엔진'] },
+    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: '(주)모자이크아이씨티 x (출)성안당 AI콘텐츠 기획팀',
+      desc: '생성형 AI를 활용한 출판사 홍보 콘텐츠 제작, 리크루팅 및 예산안 편성',
+      tags: ['프로젝트 관리', '영상 편집'] },
+    { cat: 'research', date: '2025.03 – 2025.12', role: 'Team Leader · First Author', title: '국민대학교 ITIS AI 연구팀',
+      desc: '생성형 AI를 활용한 한국어 가짜뉴스 데이터셋 구축 및 탐지모델 비교분석',
+      tags: ['생성형 AI', '데이터셋 구축'] },
+    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: '국민대학교 ‘Dream Production’ 서비스',
+      desc: '생성형 AI, UX 리서치 방법론을 활용한 꿈 기록 및 영상 생성 AI 서비스 기획',
+      tags: ['프로젝트 관리', '서비스 기획'] },
+    { cat: 'pm', date: '2025.07 – 2025.09', role: '서비스 기획', title: '(주)KT ‘BB3’ AICC',
+      desc: '생성형 AI를 활용한 은행 AICC 기획',
+      tags: ['서비스 기획'] },
+    { cat: 'edu', date: '2024.08 – 2025.08', role: '19기', title: '(사)아름다운서당 YLA',
+      desc: '인문 고전 세미나와 사회과학 케이스 스터디',
+      tags: ['연설', '토론'] },
+    { cat: 'edu', date: '2025.07 – 2025.08', role: '수료', title: '서초구청 UX/UI 교육 과정',
+      desc: '생성형 AI, Figma를 활용한 UX/UI 기획 교육',
+      tags: ['UI 디자인'] },
+    { cat: 'edu', date: '2024.12 – 2025.02', role: '18기', title: '(주)데이터스테이션 DSA',
+      desc: 'Python을 활용한 E커머스 CRM 전략 기획',
+      tags: ['데이터분석'], award: '🏆 Data Station Project 최우수상' }
+  ];
+
+  const PAPERS = [
+    { t: '생성형 AI 기반 한국어 가짜뉴스 데이터셋 구축 및 탐지 모델 비교 분석 연구', m: '지능정보연구 제31권 제4호 · 한국지능정보시스템학회 · 2025.12.16', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' },
+    { t: '생성형 AI를 활용한 한국어 가짜뉴스 탐지 고도화 연구', m: '한국정보기술학회 · 2025.11.28', url: '' }
+  ];
+
+  const AWARDS = [
+    { t: 'Global Startup Hackathon 2026 Grand Prize', m: '국민대학교 · 2026.07' },
+    { t: '캡스톤디자인 경진대회 우수상', m: '국민대학교 경영정보학부 · 2026.06' },
+    { t: '한국정보기술학회 대학생논문경진대회 동상', m: '한국정보기술학회 · 2025.12' },
+    { t: 'Data Station Project 최우수상', m: '(주)Data Station · 2025.02' }
+  ];
+
+  const EDUCATION = [
+    { t: 'Kookmin University (국민대학교)', m: 'B.B.A., Management Information System · 부전공 Law · 학점 4.31 / 4.5' }
+  ];
+
+  const CERTS = [
+    { t: 'Google AI Professional Certificate', m: 'Google · 2026.06' },
+    { t: 'Microsoft Certified: Azure AI Fundamentals', m: 'Microsoft · 2026.03 – 2028.03' }
+  ];
+
+  const VOLUNTEER = [
+    { t: 'Good Neighbors 경기동부지부', m: '2023.03 – 2023.12 · 10개월' },
+    { t: '성남복지이음 (성남시청)', m: '2023.04 – 2023.07 · 4개월' }
+  ];
+  // =====================================================================
+
+  const $ = (id) => document.getElementById(id);
+  const tagList = (tags) => tags && tags.length
+    ? '<ul class="tags">' + tags.map((t) => '<li>' + t + '</li>').join('') + '</ul>' : '';
+  const rows = (items) => items.map((i) => {
+    const title = i.url ? '<a href="' + i.url + '" target="_blank" rel="noopener">' + i.t + ' ↗</a>' : i.t;
+    return '<li><div class="t">' + title + '</div><div class="m">' + i.m + '</div></li>';
+  }).join('');
+
+  // 프로필
+  document.title = PROFILE.name + ' · Personal Brand';
+  $('logo').innerHTML = PROFILE.name + '<span>.</span>';
+  $('eyebrow').textContent = PROFILE.eyebrow;
+  $('headline').innerHTML = PROFILE.headline;
+  $('lead').innerHTML = PROFILE.lead;
+  if (PROFILE.photo) {
+    $('portrait').innerHTML = '<img src="' + encodeURI(PROFILE.photo) + '" alt="' + PROFILE.name + ' 프로필 사진">';
+  } else {
+    $('portrait').remove();
+  }
+  $('roles').innerHTML = PROFILE.roles.map((r) => '<li>' + r + '</li>').join('');
+  $('stats').innerHTML = STATS.map((s) =>
+    '<div><b>' + s.value + '<small> ' + s.unit + '</small></b><span>' + s.label + '</span></div>').join('');
+  const kw = KEYWORDS.map((k) => '<span>' + k + '</span>').join('');
+  $('ticker').innerHTML = kw + kw;
+
+  // 강점
+  $('pillars').innerHTML = PILLARS.map((p) =>
+    '<article class="pillar reveal"><div class="k">' + p.k + '</div><h3>' + p.title + '</h3><p>' + p.text + '</p>' +
+    '<ul>' + p.proof.map((x) => '<li>' + x + '</li>').join('') + '</ul></article>').join('');
+
+  // 경력
+  $('timeline').innerHTML = EXPERIENCE.map((e) =>
+    '<div class="tl-item reveal"><div class="tl-date">' + e.date + '</div><h3>' + e.title + '</h3>' +
+    '<div class="tl-org">' + e.org + '</div>' +
+    '<ul class="desc">' + e.desc.map((d) => '<li>' + d + '</li>').join('') + '</ul>' + tagList(e.tags) + '</div>').join('');
+
+  // 프로젝트
+  $('projectGrid').innerHTML = PROJECTS.map((p) =>
+    '<article class="card reveal" data-cat="' + p.cat + '">' +
+    '<div class="card-top"><span>' + p.date + '</span><span class="role">' + p.role + '</span></div>' +
+    '<h3>' + p.title + '</h3><p>' + p.desc + '</p>' +
+    (p.award ? '<span class="award-badge">' + p.award + '</span>' : '') + tagList(p.tags) + '</article>').join('');
+
+  $('filters').innerHTML = CATEGORIES.map((c) => {
+    const n = c.id === 'all' ? PROJECTS.length : PROJECTS.filter((p) => p.cat === c.id).length;
+    return '<button data-cat="' + c.id + '"' + (c.id === 'all' ? ' class="on"' : '') + '>' + c.label + '<span class="n">' + n + '</span></button>';
+  }).join('');
+  $('filters').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const cat = btn.dataset.cat;
+    $('filters').querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('.card').forEach((c) => {
+      c.classList.toggle('hide', cat !== 'all' && c.dataset.cat !== cat);
+      c.classList.add('in');
+    });
+  });
+
+  // 목록
+  $('papers').innerHTML = rows(PAPERS);
+  $('awards').innerHTML = rows(AWARDS);
+  $('education-list').innerHTML = rows(EDUCATION);
+  $('certs').innerHTML = rows(CERTS);
+  $('volunteer').innerHTML = rows(VOLUNTEER);
+
+  // 연락처
+  $('contactTitle').innerHTML = PROFILE.contactTitle;
+  $('contactText').textContent = PROFILE.contactText;
+  $('contactLinks').innerHTML = PROFILE.contacts.map((c) => c.url
+    ? '<a href="' + c.url + '" target="_blank" rel="noopener">' + c.label + ' ↗</a>'
+    : '<a class="todo">' + c.label + ' (추가 예정)</a>').join('');
+  $('footer').textContent = '© ' + new Date().getFullYear() + ' ' + PROFILE.nameEn;
+
+  // 테마 전환
+  let savedTheme = null;
+  try { savedTheme = localStorage.getItem('aboutTheme'); } catch (e) {}
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+  $('themeBtn').addEventListener('click', () => {
+    const current = document.documentElement.dataset.theme ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('aboutTheme', next); } catch (e) {}
+  });
+
+  // 스크롤 등장
+  const targets = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12 });
+    targets.forEach((t) => io.observe(t));
+  } else {
+    targets.forEach((t) => t.classList.add('in'));
+  }
+})();
+</script>
+</body>
+</html>
