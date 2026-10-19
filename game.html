@@ -124,6 +124,15 @@
   .stats b { display: block; font-size: 24px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
   #finalScore { font-size: clamp(44px, 9vw, 76px); font-weight: 800; line-height: 1; text-shadow: 0 0 24px rgba(90, 220, 255, .8); font-variant-numeric: tabular-nums; }
   #finalBest { font-size: 15px; }
+
+  /* 움직임 최소화 선호 사용자 대응 (멀미·광과민성 완화) */
+  @media (prefers-reduced-motion: reduce) {
+    #scanlines { display: none; }               /* 깜빡이는 스캔라인 제거 */
+    #flash { display: none; }                    /* 전체 화면 플래시 제거 */
+    .btn:hover, .diff:hover { transform: none; } /* 호버 튀는 애니메이션 제거 */
+    .overlay { backdrop-filter: none; }
+    .btn, .diff { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -228,6 +237,13 @@
   };
   const DIFF_ORDER = ['easy', 'normal', 'hard'];
 
+  // 움직임 최소화 선호 여부 (멀미·광과민성 완화). 설정 변경에 실시간 반응.
+  const reducedMotionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduceMotion = reducedMotionMQ.matches;
+  const onReduceMotionChange = (e) => { reduceMotion = e.matches; };
+  if (reducedMotionMQ.addEventListener) reducedMotionMQ.addEventListener('change', onReduceMotionChange);
+  else if (reducedMotionMQ.addListener) reducedMotionMQ.addListener(onReduceMotionChange);
+
   // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
   const canvas = $('game');
@@ -286,7 +302,11 @@
   for (let i = 0; i < 60; i++) { const s = {}; resetStreak(s, rand(NEAR, FAR)); streaks.push(s); }
 
   // ---------- 사운드 ----------
-  let ac = null, master = null, engineOsc = null, engineGain = null;
+  let ac = null, master = null;
+  // 엔진 사운드 노드들
+  let engineGain = null;        // 전체 엔진 볼륨
+  let toneOscA = null, toneOscB = null, toneFilter = null, toneGain = null; // 하모닉 톤 레이어
+  let airSrc = null, airFilter = null, airGain = null;                      // 노이즈(바람) 레이어
   let muted = load('tunnelFlightMuted', '0') === '1';
 
   function initAudio() {
@@ -296,15 +316,43 @@
       master = ac.createGain();
       master.gain.value = muted ? 0 : 0.6;
       master.connect(ac.destination);
-      engineOsc = ac.createOscillator();
-      engineOsc.type = 'sawtooth';
-      const filter = ac.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 420;
+
+      // 엔진 전체 게인 (play 중에만 들림)
       engineGain = ac.createGain();
       engineGain.gain.value = 0;
-      engineOsc.connect(filter); filter.connect(engineGain); engineGain.connect(master);
-      engineOsc.start();
+      engineGain.connect(master);
+
+      // --- 레이어 1: 하모닉 톤 (디튠된 톱니파 2개 → 로우패스) ---
+      // 디튠으로 두꺼운 질감을 만들고, cutoff를 속도에 따라 올려 "윙~" 상승감을 줌.
+      toneOscA = ac.createOscillator(); toneOscA.type = 'sawtooth';
+      toneOscB = ac.createOscillator(); toneOscB.type = 'sawtooth';
+      toneOscB.detune.value = 11;   // 살짝 어긋나게 → 비트/두께
+      toneFilter = ac.createBiquadFilter();
+      toneFilter.type = 'lowpass';
+      toneFilter.frequency.value = 600;
+      toneFilter.Q.value = 6;       // 레조넌스로 "제트" 피크
+      toneGain = ac.createGain();
+      toneGain.gain.value = 0.5;
+      toneOscA.connect(toneFilter); toneOscB.connect(toneFilter);
+      toneFilter.connect(toneGain); toneGain.connect(engineGain);
+      toneOscA.start(); toneOscB.start();
+
+      // --- 레이어 2: 바람/추진 노이즈 (화이트노이즈 → 밴드패스) ---
+      // 속도가 오를수록 중심 주파수와 음량이 올라가 "쉬이익" 바람소리.
+      const nlen = Math.floor(ac.sampleRate * 2);
+      const nbuf = ac.createBuffer(1, nlen, ac.sampleRate);
+      const nd = nbuf.getChannelData(0);
+      for (let i = 0; i < nlen; i++) nd[i] = Math.random() * 2 - 1;
+      airSrc = ac.createBufferSource();
+      airSrc.buffer = nbuf; airSrc.loop = true;
+      airFilter = ac.createBiquadFilter();
+      airFilter.type = 'bandpass';
+      airFilter.frequency.value = 700;
+      airFilter.Q.value = 0.8;
+      airGain = ac.createGain();
+      airGain.gain.value = 0.5;
+      airSrc.connect(airFilter); airFilter.connect(airGain); airGain.connect(engineGain);
+      airSrc.start();
     } catch (e) { ac = null; }
   }
 
@@ -341,8 +389,23 @@
     if (!ac) return;
     const t = ac.currentTime;
     const on = state === 'play' && !paused;
-    engineGain.gain.setTargetAtTime(on ? 0.07 : 0, t, 0.08);
-    engineOsc.frequency.setTargetAtTime(45 + speed * 1.8 + Math.abs(pvx) * 3, t, 0.1);
+
+    // 속도를 0~1로 정규화 (대략 13~55 범위)
+    const sp = clamp((speed - 13) / 42, 0, 1);
+
+    // 전체 엔진 볼륨: 켜질 때 부드럽게 페이드
+    engineGain.gain.setTargetAtTime(on ? 0.14 : 0, t, 0.1);
+
+    // 톤 레이어: 기본 음정 + 속도에 따른 피치, cutoff 상승으로 "윙~"
+    const baseFreq = 55 + speed * 1.4 + Math.abs(pvx) * 4;
+    toneOscA.frequency.setTargetAtTime(baseFreq, t, 0.12);
+    toneOscB.frequency.setTargetAtTime(baseFreq, t, 0.12);
+    toneFilter.frequency.setTargetAtTime(500 + sp * 2200, t, 0.15);
+    toneGain.gain.setTargetAtTime(0.5, t, 0.2);
+
+    // 바람 레이어: 속도가 오를수록 밝고 커짐
+    airFilter.frequency.setTargetAtTime(600 + sp * 2600, t, 0.15);
+    airGain.gain.setTargetAtTime(0.25 + sp * 0.55, t, 0.15);
   }
 
   function toggleMute() {
@@ -479,9 +542,9 @@
 
   function gameOver() {
     state = 'over';
-    shake = 1; flash = 1; flashColor = '#ff5a5a';
+    if (!reduceMotion) { shake = 1; flash = 1; flashColor = '#ff5a5a'; }
     boom();
-    burst(90, ['#fff', '#fd6', '#f84', '#f55'], 900);
+    burst(reduceMotion ? 30 : 90, ['#fff', '#fd6', '#f84', '#f55'], 900);
 
     const s = currentScore();
     const prev = getBest(diffId);
@@ -607,13 +670,17 @@
       // 장애물 이동 + 충돌 + 아슬아슬 판정
       const HIT = diff.hit;
       for (const b of boxes) {
+        const prevZ0 = b.z0, prevZ1 = b.z1;
         b.z0 -= move; b.z1 -= move;
         if (b.move) {
           const o = Math.sin(time * b.move.freq + b.move.phase) * b.move.amp;
           if (b.move.axis === 'x') { b.x0 = b.bx0 + o; b.x1 = b.bx1 + o; }
           else { b.y0 = b.by0 + o; b.y1 = b.by1 + o; }
         }
-        if (b.z0 <= 0.4 && b.z1 + move >= 0 &&
+        // 스윕 판정: 이번 프레임에 박스의 깊이 구간이 카메라 평면(z=0)과 겹쳤는지 확인
+        // (고속에서 한 프레임에 통과해도 터널링되지 않도록)
+        const crossed = b.z0 <= 0 && prevZ1 >= 0;
+        if (crossed &&
             px + HIT > b.x0 && px - HIT < b.x1 &&
             py + HIT > b.y0 && py - HIT < b.y1) {
           gameOver();
@@ -646,8 +713,8 @@
               o.hit = true;
               orbCount++;
               bonus += 50;
-              flash = Math.max(flash, 0.22); flashColor = '#fff3b0';
-              burst(20, ['#fff', '#fe8', '#fc3'], 520);
+              if (!reduceMotion) { flash = Math.max(flash, 0.22); flashColor = '#fff3b0'; }
+              burst(reduceMotion ? 8 : 20, ['#fff', '#fe8', '#fc3'], 520);
               popup('+50', '#fd5');
               tone(660, 0.09, 'sine', 0.2, 990);
               setTimeout(() => tone(990, 0.14, 'sine', 0.18, 1480), 70);
@@ -939,8 +1006,8 @@
     ctx.fillStyle = '#02030a';
     ctx.fillRect(0, 0, vw, vh);
 
-    sx = (Math.random() - 0.5) * shake * 40;
-    sy = (Math.random() - 0.5) * shake * 40;
+    sx = reduceMotion ? 0 : (Math.random() - 0.5) * shake * 40;
+    sy = reduceMotion ? 0 : (Math.random() - 0.5) * shake * 40;
 
     ctx.save();
     ctx.translate(vw / 2, vh / 2);
@@ -965,7 +1032,7 @@
     drawReticle();
     drawEffects();
 
-    elFlash.style.opacity = flash.toFixed(2);
+    elFlash.style.opacity = reduceMotion ? '0' : flash.toFixed(2);
     elFlash.style.background = flashColor;
   }
 

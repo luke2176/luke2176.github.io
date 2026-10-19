@@ -1,0 +1,10 @@
+# 개인 파일 / 공개 저장소에 올리지 않을 것
+증명사진.jpeg
+1stSprint.pdf
+스크린샷*.png
+CLAUDE.md
+
+# OS / 시스템 파일
+desktop.ini
+Thumbs.db
+.DS_Store
