@@ -4,6 +4,9 @@
 스크린샷*.png
 CLAUDE.md
 
+# Kiro 설정 / 개인 지침
+.kiro/
+
 # OS / 시스템 파일
 desktop.ini
 Thumbs.db
