@@ -1,0 +1,30 @@
+name: Validate site
+
+# index.html이 깨지지 않았는지 PR에서 가볍게 검증합니다.
+# 배포는 기존 GitHub Pages(legacy, main 브랜치 루트 서빙) 그대로 두고 건드리지 않습니다.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate index.html
+        run: npm run validate

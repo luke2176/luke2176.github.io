@@ -8,3 +8,6 @@ CLAUDE.md
 desktop.ini
 Thumbs.db
 .DS_Store
+
+# Node
+node_modules/
