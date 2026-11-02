@@ -2,11 +2,11 @@
 
 > 기획부터 배포까지, **A to Z**를 안내하는 AI 서비스 기획자
 
-[![Live](https://img.shields.io/badge/Live-luke2176.github.io-3d3bf3)](https://luke2176.github.io)
+[![Live](https://img.shields.io/badge/Live-luke2176--homepage.vercel.app-3d3bf3)](https://luke2176-homepage.vercel.app)
 
 개인 브랜드 포트폴리오 웹사이트입니다. 기획에서 멈추지 않고 **리서치 · 설계 · 데이터/AI 검증 · 개발**까지 직접 손대는 과정을 한 페이지에 정리했습니다.
 
-**🔗 사이트:** https://luke2176.github.io
+**🔗 사이트:** https://luke2176-homepage.vercel.app
 
 ---
 
@@ -56,6 +56,7 @@
 - 외부 프레임워크 없이 **단일 `index.html`** (바닐라 HTML/CSS/JS)로 구현
 - 모든 콘텐츠는 `index.html` 상단의 데이터 객체(`PROFILE`, `EXPERIENCE`, `FEATURED` 등)에서 렌더링 — 데이터만 수정하면 페이지에 반영됩니다
 - 다크/라이트 테마 자동 전환, 반응형 레이아웃
-- GitHub Pages로 배포 (User 사이트)
+- **방명록**: 같은 출처의 서버 함수(`api/guestbook.js`)가 Supabase에 저장·조회합니다. 비밀키는 서버 환경변수로만 사용하며 브라우저와 저장소에는 노출되지 않습니다.
+- Vercel로 배포 (`main` 병합 시 자동 재배포). 필요한 환경변수는 `.env.example` 참고
 
 > 참고: 과거 이 저장소에 있던 미니 게임은 별도 저장소 [`tunnel-flight`](https://github.com/luke2176/tunnel-flight)로 이전되었습니다. ([플레이](https://luke2176.github.io/tunnel-flight/))
