@@ -1,0 +1,25 @@
+# Vercel 배포 출력에서 제외할 항목
+# (공개 사이트에 포함하면 안 되는 것들)
+
+# 버전 관리 / 환경 비밀
+.git
+.env
+.env.*
+
+# Kiro 설정 / 개인 지침
+.kiro
+
+# 개인 기록 / 수업 자료
+CLAUDE.md
+1stSprint.pdf
+docs/
+증명사진.jpeg
+스크린샷*.png
+
+# 의존성 (Vercel이 필요 시 자체 설치)
+node_modules
+
+# OS / 시스템 파일
+desktop.ini
+Thumbs.db
+.DS_Store

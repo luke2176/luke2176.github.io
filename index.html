@@ -262,6 +262,45 @@
   .contact-links a:hover { background: var(--bg); color: var(--ink); }
   .contact-links a.todo { border-style: dashed; opacity: .55; pointer-events: none; }
 
+  /* 방명록 */
+  .gb-grid { display: grid; grid-template-columns: 320px 1fr; gap: 40px; align-items: start; }
+  @media (max-width: 760px) { .gb-grid { grid-template-columns: 1fr; gap: 28px; } }
+  .gb-form {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    padding: 24px; display: grid; gap: 14px;
+  }
+  .gb-form label { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .gb-form input, .gb-form textarea {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  }
+  .gb-form input:focus, .gb-form textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .gb-form textarea { resize: vertical; min-height: 96px; }
+  .gb-form .count { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .gb-submit {
+    font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
+    padding: 13px 22px; border-radius: 999px; border: none;
+    background: var(--ink); color: var(--bg); transition: transform .15s;
+  }
+  .gb-submit:hover:not(:disabled) { transform: translateY(-2px); }
+  .gb-submit:disabled { opacity: .55; cursor: not-allowed; }
+  .gb-note { font-size: 13px; min-height: 18px; }
+  .gb-note.err { color: #d33; }
+  .gb-note.ok { color: var(--accent); }
+  .gb-list { display: grid; gap: 12px; }
+  .gb-item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px;
+  }
+  .gb-item .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .gb-item .who { font-weight: 700; letter-spacing: -0.01em; }
+  .gb-item .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .gb-item .msg { margin-top: 6px; color: var(--muted); white-space: pre-wrap; }
+  .gb-state { color: var(--muted); font-size: 15px; padding: 8px 0; }
+  .gb-state button {
+    font: inherit; font-weight: 700; color: var(--accent); background: none;
+    border: none; cursor: pointer; padding: 0; margin-left: 8px; text-decoration: underline;
+  }
+
   footer { padding: 36px 0 48px; font-size: 13px; color: var(--muted); text-align: center; }
 
   /* 스크롤 등장 */
@@ -285,6 +324,7 @@
       <a href="#projects">프로젝트</a>
       <a href="#research">연구·수상</a>
       <a href="#contact">연락처</a>
+      <a href="#guestbook">방명록</a>
     </div>
     <button id="themeBtn" type="button" aria-label="테마 전환">◐</button>
   </div>
@@ -359,6 +399,30 @@
       <div class="contact-links" id="contactLinks"></div>
     </section>
   </div>
+
+  <section id="guestbook" class="wrap">
+    <div class="sec-head reveal"><span class="no">06</span><h2>방명록</h2></div>
+    <p class="sec-desc reveal">짧은 메시지를 남겨주세요. 남긴 글은 아래 목록에 공개됩니다.</p>
+    <div class="gb-grid">
+      <form class="gb-form reveal" id="gbForm" autocomplete="off" novalidate>
+        <div>
+          <label for="gbName">이름</label>
+          <input type="text" id="gbName" name="name" maxlength="20" required placeholder="이름 (최대 20자)">
+        </div>
+        <div>
+          <label for="gbMessage">메시지</label>
+          <textarea id="gbMessage" name="message" maxlength="140" required placeholder="메시지 (최대 140자)"></textarea>
+          <div class="count" id="gbCount">0 / 140</div>
+        </div>
+        <button type="submit" class="gb-submit" id="gbSubmit">남기기</button>
+        <p class="gb-note" id="gbNote" role="status" aria-live="polite"></p>
+      </form>
+      <div class="reveal">
+        <div class="gb-state" id="gbState">불러오는 중…</div>
+        <div class="gb-list" id="gbList"></div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer><div class="wrap" id="footer"></div></footer>
@@ -653,6 +717,121 @@
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem('aboutTheme', next); } catch (e) {}
   });
+
+  // 방명록
+  (() => {
+    const form = $('gbForm');
+    if (!form) return;
+    const nameEl = $('gbName');
+    const msgEl = $('gbMessage');
+    const countEl = $('gbCount');
+    const submitEl = $('gbSubmit');
+    const noteEl = $('gbNote');
+    const stateEl = $('gbState');
+    const listEl = $('gbList');
+    const API = '/api/guestbook';
+    const NAME_MAX = 20;
+    const MSG_MAX = 140;
+
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const fmtDate = (iso) => {
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      const p = (n) => String(n).padStart(2, '0');
+      return d.getFullYear() + '.' + p(d.getMonth() + 1) + '.' + p(d.getDate()) +
+        ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    };
+
+    const itemHTML = (it) =>
+      '<article class="gb-item"><div class="head">' +
+      '<span class="who">' + esc(it.name) + '</span>' +
+      '<span class="when">' + esc(fmtDate(it.created_at)) + '</span></div>' +
+      '<div class="msg">' + esc(it.message) + '</div></article>';
+
+    const setNote = (text, kind) => {
+      noteEl.textContent = text || '';
+      noteEl.className = 'gb-note' + (kind ? ' ' + kind : '');
+    };
+
+    const render = (items) => {
+      if (!items.length) {
+        stateEl.textContent = '첫 메시지를 남겨보세요.';
+        listEl.innerHTML = '';
+        return;
+      }
+      stateEl.textContent = '';
+      listEl.innerHTML = items.map(itemHTML).join('');
+    };
+
+    const load = async () => {
+      stateEl.innerHTML = '불러오는 중…';
+      try {
+        const res = await fetch(API, { headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error('status ' + res.status);
+        const data = await res.json();
+        render(Array.isArray(data.items) ? data.items : []);
+      } catch (e) {
+        listEl.innerHTML = '';
+        stateEl.innerHTML = '메시지를 불러오지 못했습니다.<button type="button" id="gbRetry">다시 시도</button>';
+        const retry = $('gbRetry');
+        if (retry) retry.addEventListener('click', load);
+      }
+    };
+
+    msgEl.addEventListener('input', () => {
+      countEl.textContent = msgEl.value.length + ' / ' + MSG_MAX;
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = nameEl.value.trim();
+      const message = msgEl.value.trim();
+      if (name.length < 1 || name.length > NAME_MAX) {
+        setNote('이름은 1~' + NAME_MAX + '자여야 합니다.', 'err');
+        nameEl.focus();
+        return;
+      }
+      if (message.length < 1 || message.length > MSG_MAX) {
+        setNote('메시지는 1~' + MSG_MAX + '자여야 합니다.', 'err');
+        msgEl.focus();
+        return;
+      }
+      submitEl.disabled = true;
+      const original = submitEl.textContent;
+      submitEl.textContent = '저장 중…';
+      setNote('', null);
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, message }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || ('status ' + res.status));
+        // 성공: 입력 초기화 + 목록 맨 위에 추가
+        if (data.item) {
+          if (stateEl.textContent) stateEl.textContent = '';
+          listEl.insertAdjacentHTML('afterbegin', itemHTML(data.item));
+        } else {
+          await load();
+        }
+        nameEl.value = '';
+        msgEl.value = '';
+        countEl.textContent = '0 / ' + MSG_MAX;
+        setNote('남겼습니다. 고맙습니다!', 'ok');
+      } catch (err) {
+        // 입력 내용은 유지(유실 방지)
+        setNote('잠시 후 다시 시도해 주세요.', 'err');
+      } finally {
+        submitEl.disabled = false;
+        submitEl.textContent = original;
+      }
+    });
+
+    load();
+  })();
 
   // 스크롤 등장
   const targets = document.querySelectorAll('.reveal');
