@@ -18,12 +18,18 @@ function restUrl(path) {
   return SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/' + path;
 }
 
+// 키 형식 두 가지를 모두 지원한다.
+//  - 새 비밀키(sb_secret_...): JWT가 아니므로 apikey 헤더에만 넣는다.
+//  - 레거시 service_role 키(JWT, eyJ...): apikey + Authorization Bearer 로 보낸다.
 function baseHeaders() {
-  return {
+  const headers = {
     apikey: SERVICE_ROLE_KEY,
-    Authorization: 'Bearer ' + SERVICE_ROLE_KEY,
     'Content-Type': 'application/json',
   };
+  if (SERVICE_ROLE_KEY.startsWith('eyJ')) {
+    headers.Authorization = 'Bearer ' + SERVICE_ROLE_KEY;
+  }
+  return headers;
 }
 
 // 최신순으로 방명록 목록을 가져온다.
