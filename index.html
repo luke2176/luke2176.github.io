@@ -290,6 +290,23 @@
   .rows .t { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; line-height: 1.45; }
   .rows .m { font-size: 14px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
+  /* 지금 & 협업 방식 */
+  .now-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .now-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 24px;
+  }
+  .now-card h3 { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  .now-card h3 .ico { width: 18px; height: 18px; }
+  .now-card .big { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.45; }
+  .now-card p, .now-card li { font-size: 15px; color: var(--muted); }
+  .now-card li + li { margin-top: 6px; }
+  .now-card li b { color: var(--ink); font-weight: 700; }
+  .now-card a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  .now-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+  .now-tools li { font-size: 14px; font-weight: 600; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .now-tools li + li { margin-top: 0; }
+  .now-updated { margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
   /* 연락처 */
   .contact {
     margin-top: 136px; background: var(--ink); color: var(--bg);
@@ -366,6 +383,7 @@
       <a href="#experience">경력</a>
       <a href="#projects">프로젝트</a>
       <a href="#research">연구·수상</a>
+      <a href="#now">지금</a>
       <a href="#contact">연락처</a>
       <a href="#guestbook">방명록</a>
     </div>
@@ -441,6 +459,13 @@
     </div>
   </section>
 
+  <section id="now" class="wrap">
+    <div class="sec-head reveal"><span class="no">06</span><h2>지금 &amp; 협업 방식</h2></div>
+    <p class="sec-desc reveal">지금 하고 있는 일과, 함께 일할 때 쓰는 도구와 연락 방법입니다.</p>
+    <div class="now-grid" id="nowGrid"></div>
+    <p class="now-updated reveal" id="nowUpdated"></p>
+  </section>
+
   <div class="wrap">
     <section id="contact" class="contact reveal" style="padding-top:clamp(36px, 6vw, 72px)">
       <h2 id="contactTitle"></h2>
@@ -450,7 +475,7 @@
   </div>
 
   <section id="guestbook" class="wrap">
-    <div class="sec-head reveal"><span class="no">06</span><h2>방명록</h2></div>
+    <div class="sec-head reveal"><span class="no">07</span><h2>방명록</h2></div>
     <p class="sec-desc reveal">짧은 메시지를 남겨주세요. 남긴 글은 아래 목록에 공개됩니다.</p>
     <div class="gb-grid">
       <form class="gb-form reveal" id="gbForm" autocomplete="off" novalidate>
@@ -647,6 +672,22 @@
     { t: 'Good Neighbors 경기동부지부', m: '2023.03 – 2023.12 · 10개월' },
     { t: '판교종합사회복지관 · 보조', m: '2023.01 – 2023.02 · 2개월' }
   ];
+
+  // 지금 & 협업 방식. 바뀌면 updated 날짜도 함께 고친다.
+  // 값이 비어 있는('') 항목은 화면에 나오지 않는다.
+  const NOW = {
+    updated: '2026.11.05',
+    // 팀프로젝트 합류 가능 여부와 가능한 시간. 예: '2026-2학기 팀프로젝트 합류 가능 · 평일 저녁, 주말'
+    availability: '',
+    // 지금 진행 중인 일
+    focus: [
+      { t: 'Konnect', d: 'PM, 데이터 엔지니어링 · 2026.08부터 진행 중' }
+    ],
+    // 작업에 쓰는 도구
+    tools: ['Notion', 'GitHub', 'Figma', 'Python', 'Claude Code', 'Kiro'],
+    // 연락 방법: label 은 PROFILE.contacts 의 label 과 같게 쓰면 그 링크가 붙는다.
+    contact: { preferred: 'Email', response: '' } // response 예: '보통 하루 안에 답장'
+  };
   // =====================================================================
 
   const $ = (id) => document.getElementById(id);
@@ -668,7 +709,11 @@
     search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
     layout: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
     chart: '<path d="M5 20V10M12 20V4M19 20v-7"/>',
-    code: '<path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>'
+    code: '<path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    tool: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M21.5 20a6.5 6.5 0 0 0-4-6"/>'
   };
   const icon = (name) => '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[name] + '</svg>';
   const PILLAR_ICONS = ['search', 'layout', 'chart', 'code'];
@@ -864,6 +909,33 @@
   $('education-list').innerHTML = rows(EDUCATION);
   $('certs').innerHTML = rows(CERTS);
   $('volunteer').innerHTML = rows(VOLUNTEER);
+
+  // 지금 & 협업 방식
+  (() => {
+    const grid = $('nowGrid');
+    if (!grid) return;
+    const card = (ico, title, body) =>
+      '<article class="now-card reveal"><h3>' + icon(ico) + title + '</h3>' + body + '</article>';
+    const cards = [];
+    if (NOW.availability) {
+      cards.push(card('users', '팀프로젝트 합류', '<p class="big">' + NOW.availability + '</p>'));
+    }
+    if (NOW.focus && NOW.focus.length) {
+      cards.push(card('clock', '지금 하는 일', '<ul>' + NOW.focus.map((f) =>
+        '<li><b>' + f.t + '</b>' + (f.d ? ' · ' + f.d : '') + '</li>').join('') + '</ul>'));
+    }
+    if (NOW.tools && NOW.tools.length) {
+      cards.push(card('tool', '작업에 쓰는 도구', '<ul class="now-tools">' + NOW.tools.map((t) => '<li>' + t + '</li>').join('') + '</ul>'));
+    }
+    const c = NOW.contact || {};
+    if (c.preferred) {
+      const link = PROFILE.contacts.find((x) => x.label === c.preferred && x.url);
+      const name = link ? '<a href="' + link.url + '" target="_blank" rel="noopener">' + c.preferred + ' ↗</a>' : c.preferred;
+      cards.push(card('mail', '연락 방법', '<p class="big">' + name + '</p>' + (c.response ? '<p>' + c.response + '</p>' : '')));
+    }
+    grid.innerHTML = cards.join('');
+    $('nowUpdated').textContent = NOW.updated ? '마지막 업데이트 ' + NOW.updated : '';
+  })();
 
   // 연락처
   $('contactTitle').innerHTML = PROFILE.contactTitle;
