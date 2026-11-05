@@ -171,6 +171,42 @@
   .pillar li::before { content: ""; position: absolute; left: 0; top: 13px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   @media (max-width: 600px) { .pillars { grid-template-columns: 1fr; } }
 
+  /* 역할로 보기 */
+  .role-pick { margin: -12px 0 32px; }
+  .role-pick-label { font-size: 15px; font-weight: 600; color: var(--muted); margin-bottom: 12px; }
+  .role-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .role-chips button {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+    padding: 8px 16px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .role-chips button .ico { width: 16px; height: 16px; color: var(--accent); }
+  .role-chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .role-chips button[aria-pressed="true"] .ico { color: inherit; }
+  .role-chips button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .role-result {
+    margin-top: 16px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 20px; padding: 20px 24px;
+  }
+  .role-result:empty { display: none; }
+  .role-result .sum { font-weight: 700; }
+  .role-result .sum b { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .role-result ul { margin-top: 10px; }
+  .role-result li a { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .role-result li:last-child a { border-bottom: none; }
+  .role-result li a:hover .t { color: var(--accent); }
+  .role-result .kind { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+  .role-result .t { font-weight: 600; }
+  .role-result .when { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pillars.picking .pillar.in:not(.match) { opacity: .6; }
+  .pillar.match { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .jump-hit { outline: 2px solid var(--accent); outline-offset: 6px; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+
   /* 경력 타임라인 */
   .timeline { border-left: 2px solid var(--line); margin-left: 6px; }
   .tl-item { position: relative; padding: 0 0 36px 30px; }
@@ -360,6 +396,12 @@
   <section id="about" class="wrap">
     <div class="sec-head reveal"><span class="no">01</span><h2>팀에서 맡을 수 있는 역할</h2></div>
     <p class="sec-desc reveal">팀 프로젝트의 시작부터 끝까지, 단계별로 제가 맡을 수 있는 일과 그 근거입니다.</p>
+    <div class="role-pick reveal">
+      <p class="role-pick-label" id="rolePickLabel">필요한 역할을 고르면 그 역할의 근거가 된 경력과 프로젝트를 모아 보여 드립니다.</p>
+      <div class="role-chips" id="roleChips" role="group" aria-labelledby="rolePickLabel"></div>
+      <div class="role-result" id="roleResult"></div>
+      <p class="sr-only" id="roleLive" aria-live="polite"></p>
+    </div>
     <div class="pillars" id="pillars"></div>
   </section>
 
@@ -472,42 +514,46 @@
 
   const PILLARS = [
     {
-      k: '01 · DISCOVER', title: '문제 발견',
+      id: 'discover', k: '01 · DISCOVER', title: '문제 발견',
       text: '<b>UX 리서치와 벤치마킹</b>을 맡아, 팀이 풀 문제를 먼저 분명하게 정리합니다.',
       proof: ['UX 리서치 기반 서비스 개선 제안서', '타사 벤치마킹·인사이트 보고서', '‘Dream Production’ UX 리서치']
     },
     {
-      k: '02 · PLAN', title: '기획·설계',
+      id: 'plan', k: '02 · PLAN', title: '기획·설계',
       text: '<b>PM과 서비스 기획</b>을 맡아, 진행을 관리하고 서비스 구조와 시스템을 설계합니다.',
       proof: ['PM으로 이끈 프로젝트 6건', '‘K*path’ On-premise AI 학사시스템 설계', '‘도리’로 캡스톤디자인 우수상']
     },
     {
-      k: '03 · VALIDATE', title: '데이터·AI 검증',
+      id: 'validate', k: '03 · VALIDATE', title: '데이터·AI 검증',
       text: '<b>Python 데이터 분석과 DB 모델링</b>을 맡아, 기획의 근거를 데이터와 보고서로 만듭니다.',
       proof: ['상권분석·인구통계·산업업종 DB 구축', '한국어 가짜뉴스 탐지 논문 2편', 'CRM 전략으로 Data Station 최우수상']
     },
     {
-      k: '04 · BUILD & SHIP', title: '개발·배포',
+      id: 'build', k: '04 · BUILD & SHIP', title: '개발·배포',
       text: '<b>AI 에이전트 구현과 프론트엔드 개발</b>을 맡아, 실제로 동작하는 결과물을 만듭니다.',
       proof: ['Global Startup Hackathon Grand Prize', 'Claude Code 기반 ‘공생의 나무’ 챗봇 구축', '‘Konnect’ 데이터 엔지니어링']
     }
   ];
 
+  // roles: 이 항목이 근거가 되는 역할 (PILLARS 의 id: discover / plan / validate / build).
+  //        '역할로 보기'에서 그 역할을 고르면 이 항목이 목록에 나옵니다. 비워 두면 나오지 않습니다.
+  //        기준: PM·팀 리더·서비스 기획 → plan, UX 리서치·벤치마킹 → discover,
+  //              데이터 분석·DB 모델링·연구 → validate, 개발·구축·데이터 엔지니어링 → build
   const EXPERIENCE = [
     {
       date: '2026.07 – 2026.08', title: 'Undergraduate Researcher', org: '국민대학교 · 인턴',
       desc: ['한국어 유튜브 가짜뉴스 <b>이미지 자동화 파이프라인</b> 구축', '<b>VLM 성능 개선</b>과 활용 방안 연구'],
-      tags: ['딥러닝', '데이터 엔지니어링']
+      tags: ['딥러닝', '데이터 엔지니어링'], roles: ['validate', 'build']
     },
     {
       date: '2026.02 – 2026.03', title: 'Educational Product Manager', org: 'Ducogen · 인턴',
       desc: ['<b>IT 자격증(AZ-900, AI-900) 학습 페이지</b> 기획 및 구축'],
-      tags: ['서비스 기획']
+      tags: ['서비스 기획'], roles: ['plan', 'build']
     },
     {
       date: '2025.05 – 2025.08', title: 'Data Analyst', org: '(주)아이디이노랩 · 인턴',
       desc: ['Python 기반 <b>상권분석·인구통계·산업업종 DB</b> 모델링 및 구축', '<b>UX 리서치</b> 기반 서비스 개선 제안서 작성', '타사 <b>벤치마킹</b> 및 인사이트 보고서 작성'],
-      tags: ['데이터 엔지니어링']
+      tags: ['데이터 엔지니어링'], roles: ['discover', 'validate']
     }
   ];
 
@@ -526,49 +572,49 @@
         ['역할', 'PM, 데이터 엔지니어링'],
         ['현황', '2026년 8월부터 진행 중']
       ],
-      tags: ['프로젝트 관리', '시스템 디자인'] },
+      tags: ['프로젝트 관리', '시스템 디자인'], roles: ['plan', 'build'] },
     { date: '2026.05 – 2026.07', title: 'Halal Lens', org: 'KMU x TUIT Global Startup Hackathon 2026',
       facts: [
         ['무엇', '<b>OCR로 할랄과 하람을 구별</b>해 주는 AI 서비스'],
         ['역할', '팀 리더, 개발'],
         ['결과', '🏆 <b>Grand Prize</b>']
       ],
-      tags: ['디자인사고', 'AI 에이전트'] },
+      tags: ['디자인사고', 'AI 에이전트'], roles: ['plan', 'build'] },
     { date: '2026.03 – 2026.06', title: '도리', org: '국민대학교',
       facts: [
         ['무엇', '<b>사내 소통을 관리하는 B2B AI Agent</b> 서비스'],
         ['역할', 'PM. 생성형 AI와 디자인씽킹으로 기획하고 구축'],
         ['결과', '🏆 캡스톤디자인 경진대회 <b>우수상</b>']
       ],
-      tags: ['프로젝트 관리', '디자인사고'] },
+      tags: ['프로젝트 관리', '디자인사고'], roles: ['plan', 'build'] },
     { date: '2025.03 – 2025.12', title: '한국어 가짜뉴스 탐지 연구', org: '국민대학교 ITIS AI 연구팀',
       facts: [
         ['무엇', '생성형 AI로 <b>한국어 가짜뉴스 데이터셋</b>을 구축하고 탐지 모델을 비교 분석'],
         ['역할', '팀 리더, 논문 제1저자'],
         ['결과', '<b>지능정보연구</b> 논문 게재']
       ],
-      tags: ['생성형 AI', '데이터셋 구축'] }
+      tags: ['생성형 AI', '데이터셋 구축'], roles: ['plan', 'validate'] }
   ];
 
   // 그 외 프로젝트·활동: 한 줄 목록
   const OTHERS = [
-    { cat: 'pm', date: '2026.09', role: 'PM', title: 'AWS Kirothon', org: '',
+    { cat: 'pm', date: '2026.09', role: 'PM', title: 'AWS Kirothon', org: '', roles: ['plan'],
       desc: '학교 공지사항을 <b>맞춤형으로 추천</b>하고 일정을 관리해 주는 AI Agent' },
-    { cat: 'dev', date: '2026.05 – 2026.06', role: '개발', title: '공생의 나무 챗봇', org: 'HUSS x 뤼튼테크놀로지스',
+    { cat: 'dev', date: '2026.05 – 2026.06', role: '개발', title: '공생의 나무 챗봇', org: 'HUSS x 뤼튼테크놀로지스', roles: ['build'],
       desc: 'Claude Code로 만든 <b>역량 성장 대시보드</b>와 진로 상담 챗봇' },
-    { cat: 'pm', date: '2026.05 – 2026.06', role: 'PM', title: 'K*path', org: '국민대학교',
+    { cat: 'pm', date: '2026.05 – 2026.06', role: 'PM', title: 'K*path', org: '국민대학교', roles: ['plan'],
       desc: 'NCS 기반 직무 매핑과 로드맵을 제공하는 <b>On-premise AI 학사시스템</b> 설계' },
-    { cat: 'edu', date: '2025.12 – 2026.03', role: '교육 과정', title: '커머셜 AI 융복합 기획자 정예과정 7기', org: '새싹캠퍼스',
+    { cat: 'edu', date: '2025.12 – 2026.03', role: '교육 과정', title: '커머셜 AI 융복합 기획자 정예과정 7기', org: '새싹캠퍼스', roles: ['plan'],
       desc: '생성형 AI와 언리얼 엔진으로 기획·영상·마케팅 실습, <b>기업연계 프로젝트</b> 수행' },
-    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: 'AI 콘텐츠 기획팀', org: '모자이크아이씨티 x 성안당',
+    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: 'AI 콘텐츠 기획팀', org: '모자이크아이씨티 x 성안당', roles: ['plan'],
       desc: '생성형 AI로 <b>출판사 홍보 콘텐츠</b> 제작, 리크루팅과 예산안 편성' },
-    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: 'Dream Production', org: '국민대학교',
+    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: 'Dream Production', org: '국민대학교', roles: ['discover', 'plan'],
       desc: 'UX 리서치 방법론으로 기획한 <b>꿈 기록·영상 생성 AI 서비스</b>' },
-    { cat: 'pm', date: '2025.07 – 2025.09', role: '서비스 기획', title: 'BB3 AICC', org: 'KT',
+    { cat: 'pm', date: '2025.07 – 2025.09', role: '서비스 기획', title: 'BB3 AICC', org: 'KT', roles: ['plan'],
       desc: '생성형 AI를 활용한 <b>은행 AICC</b> 기획' },
-    { cat: 'edu', date: '2025.07 – 2025.08', role: '교육 과정', title: 'UX/UI 교육 과정', org: '서초구청',
+    { cat: 'edu', date: '2025.07 – 2025.08', role: '교육 과정', title: 'UX/UI 교육 과정', org: '서초구청', roles: ['discover'],
       desc: '생성형 AI와 Figma를 활용한 <b>UX/UI 기획</b> 교육' },
-    { cat: 'edu', date: '2024.12 – 2025.02', role: '데이터 분석', title: 'E커머스 CRM 전략 기획', org: '데이터스테이션 DSA 18기',
+    { cat: 'edu', date: '2024.12 – 2025.02', role: '데이터 분석', title: 'E커머스 CRM 전략 기획', org: '데이터스테이션 DSA 18기', roles: ['validate'],
       desc: 'Python을 활용한 <b>E커머스 CRM 전략</b> 기획', award: '🏆 Data Station Project 최우수상' },
     { cat: 'edu', date: '2024.08 – 2025.08', role: '세미나 활동', title: 'YLA 19기', org: '아름다운서당',
       desc: '인문 고전 세미나와 사회과학 케이스 스터디' }
@@ -653,24 +699,24 @@
 
   // 강점
   $('pillars').innerHTML = PILLARS.map((p, i) =>
-    '<article class="pillar reveal"><span class="sec-ico">' + icon(PILLAR_ICONS[i]) + '</span><div class="k">' + p.k + '</div><h3>' + p.title + '</h3><p>' + p.text + '</p>' +
+    '<article class="pillar reveal" data-role="' + p.id + '"><span class="sec-ico">' + icon(PILLAR_ICONS[i]) + '</span><div class="k">' + p.k + '</div><h3>' + p.title + '</h3><p>' + p.text + '</p>' +
     '<ul>' + p.proof.map((x) => '<li>' + x + '</li>').join('') + '</ul></article>').join('');
 
   // 경력
-  $('timeline').innerHTML = EXPERIENCE.map((e) =>
-    '<div class="tl-item reveal"><div class="tl-date">' + e.date + '</div><h3>' + e.title + '</h3>' +
+  $('timeline').innerHTML = EXPERIENCE.map((e, i) =>
+    '<div class="tl-item reveal" id="exp-' + i + '"><div class="tl-date">' + e.date + '</div><h3>' + e.title + '</h3>' +
     '<div class="tl-org">' + e.org + '</div>' +
     '<ul class="desc">' + e.desc.map((d) => '<li>' + d + '</li>').join('') + '</ul>' + tagList(e.tags) + '</div>').join('');
 
   // 프로젝트
-  $('featured').innerHTML = FEATURED.map((p) =>
-    '<article class="card reveal"><div class="date">' + p.date + '</div><h3>' + p.title + '</h3>' +
+  $('featured').innerHTML = FEATURED.map((p, i) =>
+    '<article class="card reveal" id="feat-' + i + '"><div class="date">' + p.date + '</div><h3>' + p.title + '</h3>' +
     (p.org ? '<div class="org">' + p.org + '</div>' : '') +
     '<dl class="facts">' + p.facts.map((f) => '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>').join('') + '</dl>' +
     tagList(p.tags) + '</article>').join('');
 
-  $('plist').innerHTML = OTHERS.map((p) =>
-    '<li class="reveal" data-cat="' + p.cat + '"><div class="date">' + p.date + '</div>' +
+  $('plist').innerHTML = OTHERS.map((p, i) =>
+    '<li class="reveal" id="proj-' + i + '" data-cat="' + p.cat + '"><div class="date">' + p.date + '</div>' +
     '<div><div class="t">' + p.title + (p.org ? '<small>' + p.org + '</small>' : '') + '</div>' +
     '<div class="d">' + p.desc + '</div>' +
     (p.award ? '<span class="award-badge">' + p.award + '</span>' : '') + '</div>' +
@@ -691,6 +737,126 @@
       li.classList.add('in');
     });
   });
+
+  // 역할로 보기: 고른 역할의 근거가 된 경력·프로젝트를 한곳에 모은다.
+  // 주소에 ?role=plan 처럼 붙이면 그 역할을 고른 상태로 열린다. (discover / plan / validate / build)
+  (() => {
+    const chips = $('roleChips');
+    const result = $('roleResult');
+    const pillarBox = $('pillars');
+    if (!chips || !result) return;
+
+    const el = (tag, cls, text) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    };
+    const SOURCES = [
+      { group: '경력', kind: () => '경력', prefix: 'exp', items: EXPERIENCE, title: (x) => x.title + ' · ' + x.org },
+      { group: '프로젝트', kind: () => '대표 프로젝트', prefix: 'feat', items: FEATURED, title: (x) => x.title },
+      // 교육 과정·대외활동(cat: 'edu')은 프로젝트와 구분해 표시한다.
+      { group: (x) => x.cat === 'edu' ? '교육·활동' : '프로젝트', kind: (x) => x.cat === 'edu' ? '교육·활동' : '프로젝트',
+        prefix: 'proj', items: OTHERS, title: (x) => x.title }
+    ];
+    const GROUPS = ['경력', '프로젝트', '교육·활동'];
+    const live = $('roleLive');
+    let current = null;
+    let hitTimer = null;
+
+    chips.innerHTML = PILLARS.map((p, i) =>
+      '<button type="button" data-role="' + p.id + '" aria-pressed="false">' + icon(PILLAR_ICONS[i]) + p.title + '</button>').join('');
+
+    const select = (id, updateUrl, quiet) => {
+      const pillar = PILLARS.find((p) => p.id === id);
+      current = pillar ? pillar.id : null;
+      chips.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.role === current)));
+      pillarBox.classList.toggle('picking', !!current);
+      pillarBox.querySelectorAll('.pillar').forEach((a) => a.classList.toggle('match', a.dataset.role === current));
+
+      result.textContent = '';
+      if (pillar) {
+        const hits = [];
+        SOURCES.forEach((s) => s.items.forEach((it, i) => {
+          if (it.roles && it.roles.includes(current)) {
+            hits.push({
+              group: typeof s.group === 'function' ? s.group(it) : s.group,
+              kind: s.kind(it), id: s.prefix + '-' + i, title: s.title(it), date: it.date
+            });
+          }
+        }));
+        // 요약: "기획·설계의 근거: 경력 1건 · 프로젝트 9건 · 교육·활동 1건" (0건인 묶음은 뺀다)
+        const sum = el('p', 'sum', pillar.title + '의 근거: ');
+        const parts = [];
+        GROUPS.forEach((g) => {
+          const n = hits.filter((h) => h.group === g).length;
+          if (!n) return;
+          if (parts.length) sum.append(' · ');
+          sum.append(g + ' ', el('b', null, String(n)), '건');
+          parts.push(g + ' ' + n + '건');
+        });
+        if (!parts.length) sum.append('아직 연결된 항목이 없습니다.');
+        result.append(sum);
+        const ul = el('ul');
+        hits.forEach((h) => {
+          const a = el('a');
+          a.href = '#' + h.id;
+          a.append(el('span', 'kind', h.kind), el('span', 't', h.title), el('span', 'when', h.date));
+          const li = el('li');
+          li.append(a);
+          ul.append(li);
+        });
+        result.append(ul);
+        if (live && !quiet) live.textContent = sum.textContent;
+      } else if (live && !quiet) {
+        live.textContent = '역할 선택을 해제했습니다.';
+      }
+
+      if (updateUrl) {
+        const url = new URL(location.href);
+        if (current) url.searchParams.set('role', current);
+        else url.searchParams.delete('role');
+        history.replaceState(null, '', url);
+      }
+    };
+
+    // 같은 역할을 다시 누르면 선택을 푼다.
+    chips.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      select(b.dataset.role === current ? null : b.dataset.role, true);
+    });
+
+    // 목록에서 항목을 누르면 해당 위치로 이동한다. 프로젝트 필터에 가려진 항목이면 필터를 '전체'로 되돌린다.
+    result.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      const target = document.getElementById(a.getAttribute('href').slice(1));
+      if (!target) return;
+      if (target.classList.contains('hide')) {
+        const all = $('filters').querySelector('button[data-cat="all"]');
+        if (all) all.click();
+      }
+      // 아직 나타나기 전(.reveal)인 항목은 아래로 18px 밀려 있어 이동 위치가 어긋난다. 애니메이션 없이 바로 제자리에 둔다.
+      if (!target.classList.contains('in')) {
+        target.style.transition = 'none';
+        target.classList.add('in');
+        void target.offsetHeight;
+        target.style.transition = '';
+      }
+      document.querySelectorAll('.jump-hit').forEach((n) => n.classList.remove('jump-hit'));
+      target.classList.add('jump-hit');
+      clearTimeout(hitTimer);
+      hitTimer = setTimeout(() => target.classList.remove('jump-hit'), 2400);
+    });
+
+    // 주소의 ?role= 값으로 시작한다. 잘못된 값이면 아무것도 고르지 않고 주소에서 지운다.
+    const fromUrl = new URLSearchParams(location.search).get('role');
+    if (fromUrl !== null) {
+      if (PILLARS.some((p) => p.id === fromUrl)) select(fromUrl, false, true);
+      else select(null, true, true);
+    }
+  })();
 
   // 목록
   $('papers').innerHTML = rows(PAPERS);
