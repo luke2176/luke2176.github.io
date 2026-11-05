@@ -58,6 +58,7 @@
 - 다크/라이트 테마 자동 전환, 반응형 레이아웃
 - **역할로 보기**: "팀에서 맡을 수 있는 역할"에서 역할을 고르면 그 근거가 된 경력·프로젝트를 모아 보여 줍니다. 각 항목의 `roles` 값으로 연결하며, `?role=plan`처럼 주소로 공유할 수 있습니다. (`docs/feature-ideas.md`)
 - **방명록**: 같은 출처의 서버 함수(`api/guestbook.js`)가 Supabase에 저장·조회합니다. 비밀키는 서버 환경변수로만 사용하며 브라우저와 저장소에는 노출되지 않습니다.
+- **AI에게 물어보기**: 서버 함수(`api/ask.js`)가 `index.html` 데이터 블록만 근거로 Gemini에게 답을 받아 옵니다. 질문 내용은 저장하지 않고, 방문자별 시간당 10회·사이트 전체 하루 200회로 제한합니다(Supabase `ask_take` 함수). 키는 `GEMINI_API_KEY` 서버 환경변수로만 사용합니다.
 - Vercel로 배포 (`main` 병합 시 자동 재배포). 필요한 환경변수는 `.env.example` 참고
 
 > 참고: 과거 이 저장소에 있던 미니 게임은 별도 저장소 [`tunnel-flight`](https://github.com/luke2176/tunnel-flight)로 이전되었습니다. ([플레이](https://luke2176.github.io/tunnel-flight/))

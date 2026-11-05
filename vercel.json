@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run validate",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "functions": {
+    "api/ask.js": {
+      "includeFiles": "index.html",
+      "maxDuration": 30
+    }
+  }
 }
