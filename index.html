@@ -254,6 +254,25 @@
   }
   @media (max-width: 760px) { .featured { grid-template-columns: 1fr; } }
 
+  /* 대표 프로젝트 자세히 보기 */
+  .detail { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .detail summary {
+    cursor: pointer; font-size: 15px; font-weight: 700; color: var(--accent);
+    list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .detail summary::-webkit-details-marker { display: none; }
+  .detail summary::after { content: "+"; font-size: 18px; line-height: 1; }
+  .detail[open] summary::after { content: "−"; }
+  .detail summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+  .detail dl { margin-top: 12px; display: grid; gap: 10px; }
+  .detail dl div { display: grid; grid-template-columns: 72px 1fr; gap: 12px; }
+  .detail dt { font-size: 14px; font-weight: 700; color: var(--muted); padding-top: 2px; }
+  .detail dd { font-size: 15px; line-height: 1.6; }
+  .detail dd li { position: relative; padding-left: 12px; }
+  .detail dd li::before { content: "·"; position: absolute; left: 0; color: var(--accent); font-weight: 800; }
+  .detail dd a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+  @media (max-width: 480px) { .detail dl div { grid-template-columns: 1fr; gap: 2px; } }
+
   .more-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 64px 0 4px; }
   .more-head .sub-head { margin: 0; }
   .filters { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -590,6 +609,8 @@
   ];
 
   // 대표 프로젝트: 크게 보여 줄 것만. facts 는 [라벨, 내용] 형식
+  // detail: 카드의 '자세히 보기'에 펼쳐지는 내용. 빈 값('' 또는 [])은 표시하지 않고, 모두 비면 버튼도 나오지 않는다.
+  //   problem: 풀려던 문제 / did: 내가 직접 한 일 [] / process: 진행 과정 / results: 결과 [] / links: [{ label, url }]
   const FEATURED = [
     { date: '2026.08 – 현재', title: 'Konnect', org: '',
       facts: [
@@ -597,28 +618,40 @@
         ['역할', 'PM, 데이터 엔지니어링'],
         ['현황', '2026년 8월부터 진행 중']
       ],
-      tags: ['프로젝트 관리', '시스템 디자인'], roles: ['plan', 'build'] },
+      tags: ['프로젝트 관리', '시스템 디자인'], roles: ['plan', 'build'],
+      detail: { problem: '', did: [], process: '', results: [], links: [] } },
     { date: '2026.05 – 2026.07', title: 'Halal Lens', org: 'KMU x TUIT Global Startup Hackathon 2026',
       facts: [
         ['무엇', '<b>OCR로 할랄과 하람을 구별</b>해 주는 AI 서비스'],
         ['역할', '팀 리더, 개발'],
         ['결과', '🏆 <b>Grand Prize</b>']
       ],
-      tags: ['디자인사고', 'AI 에이전트'], roles: ['plan', 'build'] },
+      tags: ['디자인사고', 'AI 에이전트'], roles: ['plan', 'build'],
+      detail: { problem: '', did: [], process: '',
+        results: ['KMU x TUIT Global Startup Hackathon 2026 <b>Grand Prize</b> (2026.07)'], links: [] } },
     { date: '2026.03 – 2026.06', title: '도리', org: '국민대학교',
       facts: [
         ['무엇', '<b>사내 소통을 관리하는 B2B AI Agent</b> 서비스'],
         ['역할', 'PM. 생성형 AI와 디자인씽킹으로 기획하고 구축'],
         ['결과', '🏆 캡스톤디자인 경진대회 <b>우수상</b>']
       ],
-      tags: ['프로젝트 관리', '디자인사고'], roles: ['plan', 'build'] },
+      tags: ['프로젝트 관리', '디자인사고'], roles: ['plan', 'build'],
+      detail: { problem: '', did: [], process: '',
+        results: ['국민대학교 경영정보학부 캡스톤디자인 경진대회 <b>우수상</b> (2026.06)'], links: [] } },
     { date: '2025.03 – 2025.12', title: '한국어 가짜뉴스 탐지 연구', org: '국민대학교 ITIS AI 연구팀',
       facts: [
         ['무엇', '생성형 AI로 <b>한국어 가짜뉴스 데이터셋</b>을 구축하고 탐지 모델을 비교 분석'],
         ['역할', '팀 리더, 논문 제1저자'],
         ['결과', '<b>지능정보연구</b> 논문 게재']
       ],
-      tags: ['생성형 AI', '데이터셋 구축'], roles: ['plan', 'validate'] }
+      tags: ['생성형 AI', '데이터셋 구축'], roles: ['plan', 'validate'],
+      detail: { problem: '', did: [], process: '',
+        results: [
+          '<b>지능정보연구</b> 제31권 제4호 논문 게재 (2025.12)',
+          '한국정보기술학회 대학생논문경진대회 <b>동상</b> (2025.12)',
+          '이어서 국민대학교 Undergraduate Researcher(2026.07–08)로 가짜뉴스 이미지 자동화 파이프라인과 VLM 연구'
+        ],
+        links: [{ label: '논문 보기 (DBpia)', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' }] } }
   ];
 
   // 그 외 프로젝트·활동: 한 줄 목록
@@ -753,12 +786,29 @@
     '<div class="tl-org">' + e.org + '</div>' +
     '<ul class="desc">' + e.desc.map((d) => '<li>' + d + '</li>').join('') + '</ul>' + tagList(e.tags) + '</div>').join('');
 
+  // 대표 프로젝트 '자세히 보기'. 채워진 항목만 보여 주고, 아무것도 없으면 빈 문자열.
+  const detailBlock = (d) => {
+    if (!d) return '';
+    const list = (xs) => '<ul>' + xs.map((x) => '<li>' + x + '</li>').join('') + '</ul>';
+    const rowsOut = [];
+    if (d.problem) rowsOut.push(['문제', '<p>' + d.problem + '</p>']);
+    if (d.did && d.did.length) rowsOut.push(['내가 한 일', list(d.did)]);
+    if (d.process) rowsOut.push(['과정', '<p>' + d.process + '</p>']);
+    if (d.results && d.results.length) rowsOut.push(['결과', list(d.results)]);
+    if (d.links && d.links.length) {
+      rowsOut.push(['자료', list(d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>'))]);
+    }
+    if (!rowsOut.length) return '';
+    return '<details class="detail"><summary>자세히 보기</summary><dl>' +
+      rowsOut.map((r) => '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>').join('') + '</dl></details>';
+  };
+
   // 프로젝트
   $('featured').innerHTML = FEATURED.map((p, i) =>
     '<article class="card reveal" id="feat-' + i + '"><div class="date">' + p.date + '</div><h3>' + p.title + '</h3>' +
     (p.org ? '<div class="org">' + p.org + '</div>' : '') +
     '<dl class="facts">' + p.facts.map((f) => '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>').join('') + '</dl>' +
-    tagList(p.tags) + '</article>').join('');
+    detailBlock(p.detail) + tagList(p.tags) + '</article>').join('');
 
   $('plist').innerHTML = OTHERS.map((p, i) =>
     '<li class="reveal" id="proj-' + i + '" data-cat="' + p.cat + '"><div class="date">' + p.date + '</div>' +
