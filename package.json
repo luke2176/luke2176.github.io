@@ -4,7 +4,7 @@
   "private": true,
   "description": "개인 브랜드 포트폴리오 홈페이지 (단일 index.html)",
   "scripts": {
-    "validate": "html-validate index.html"
+    "validate": "html-validate index.html && node -e \"require('./api/ask.js').pageData()\""
   },
   "engines": {
     "node": ">=22.22.0"

@@ -326,6 +326,36 @@
   .now-tools li + li { margin-top: 0; }
   .now-updated { margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
+  /* AI에게 물어보기 */
+  .ask-box {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    padding: 24px; display: grid; gap: 14px; max-width: 820px;
+  }
+  .ask-form { display: flex; gap: 10px; }
+  .ask-form input {
+    flex: 1; min-width: 0; font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 999px; padding: 12px 18px;
+  }
+  .ask-form input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+  .ask-form .gb-submit { flex: none; }
+  @media (max-width: 480px) { .ask-form { flex-direction: column; } }
+  .ask-examples { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ask-examples button {
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    padding: 6px 14px; border-radius: 999px; border: 1px dashed var(--line);
+    background: transparent; color: var(--muted);
+  }
+  .ask-examples button:hover:not(:disabled) { color: var(--ink); border-color: var(--ink); }
+  .ask-examples button:disabled { opacity: .55; cursor: not-allowed; }
+  .ask-log { display: grid; gap: 12px; }
+  .ask-log:empty { display: none; }
+  .ask-item { border-top: 1px dashed var(--line); padding-top: 12px; }
+  .ask-item .q { font-weight: 700; }
+  .ask-item .q::before { content: "Q. "; color: var(--accent); }
+  .ask-item .a { margin-top: 6px; color: var(--muted); white-space: pre-wrap; }
+  .ask-item .a::before { content: "A. "; color: var(--accent); font-weight: 700; }
+  .ask-item.pending .a { font-style: italic; }
+
   /* 연락처 */
   .contact {
     margin-top: 136px; background: var(--ink); color: var(--bg);
@@ -403,6 +433,7 @@
       <a href="#projects">프로젝트</a>
       <a href="#research">연구·수상</a>
       <a href="#now">지금</a>
+      <a href="#ask">AI 질문</a>
       <a href="#contact">연락처</a>
       <a href="#guestbook">방명록</a>
     </div>
@@ -485,6 +516,21 @@
     <p class="now-updated reveal" id="nowUpdated"></p>
   </section>
 
+  <section id="ask" class="wrap">
+    <div class="sec-head reveal"><span class="no">07</span><h2>AI에게 물어보기</h2></div>
+    <p class="sec-desc reveal">이 페이지의 경력·프로젝트·연구 내용만 근거로 AI가 답합니다. 틀릴 수 있으니 중요한 내용은 해당 섹션에서 확인해 주세요. 질문 내용은 저장하지 않습니다.</p>
+    <div class="ask-box reveal">
+      <form class="ask-form" id="askForm" autocomplete="off" novalidate>
+        <label class="sr-only" for="askInput">질문</label>
+        <input type="text" id="askInput" name="question" placeholder="예: 데이터 분석 경험이 있나요?">
+        <button type="submit" class="gb-submit" id="askSubmit">물어보기</button>
+      </form>
+      <div class="ask-examples" id="askExamples"></div>
+      <p class="gb-note" id="askNote" role="status" aria-live="polite"></p>
+      <div class="ask-log" id="askLog" aria-live="polite"></div>
+    </div>
+  </section>
+
   <div class="wrap">
     <section id="contact" class="contact reveal" style="padding-top:clamp(36px, 6vw, 72px)">
       <h2 id="contactTitle"></h2>
@@ -494,7 +540,7 @@
   </div>
 
   <section id="guestbook" class="wrap">
-    <div class="sec-head reveal"><span class="no">07</span><h2>방명록</h2></div>
+    <div class="sec-head reveal"><span class="no">08</span><h2>방명록</h2></div>
     <p class="sec-desc reveal">짧은 메시지를 남겨주세요. 남긴 글은 아래 목록에 공개됩니다.</p>
     <div class="gb-grid">
       <form class="gb-form reveal" id="gbForm" autocomplete="off" novalidate>
@@ -985,6 +1031,89 @@
     }
     grid.innerHTML = cards.join('');
     $('nowUpdated').textContent = NOW.updated ? '마지막 업데이트 ' + NOW.updated : '';
+  })();
+
+  // AI에게 물어보기: 질문을 /api/ask 로 보내고 답을 아래에 쌓는다. 답은 textContent 로만 넣는다.
+  (() => {
+    const form = $('askForm');
+    if (!form) return;
+    const input = $('askInput');
+    const submit = $('askSubmit');
+    const note = $('askNote');
+    const log = $('askLog');
+    const examples = $('askExamples');
+    const MAX = 300;
+    const KEEP = 5; // 화면에 남길 최근 질문 수
+    const EXAMPLES = ['데이터 분석 경험이 있나요?', 'PM으로 이끈 프로젝트는?', '개발은 어디까지 할 수 있나요?', '어떻게 연락하면 되나요?'];
+    let busy = false;
+
+    const mk = (tag, cls, text) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    };
+    const setNote = (text, kind) => {
+      note.textContent = text || '';
+      note.className = 'gb-note' + (kind ? ' ' + kind : '');
+    };
+    const setBusy = (on) => {
+      busy = on;
+      submit.disabled = on;
+      submit.textContent = on ? '답변 중…' : '물어보기';
+      examples.querySelectorAll('button').forEach((b) => { b.disabled = on; });
+    };
+
+    EXAMPLES.forEach((q) => {
+      const b = mk('button', null, q);
+      b.type = 'button';
+      b.addEventListener('click', () => { input.value = q; ask(); });
+      examples.append(b);
+    });
+
+    const ask = async () => {
+      if (busy) return;
+      const question = input.value.trim();
+      const n = Array.from(question).length;
+      if (n < 1) { setNote('질문을 입력해 주세요.', 'err'); input.focus(); return; }
+      if (n > MAX) { setNote('질문은 ' + MAX + '자까지 쓸 수 있어요. (지금 ' + n + '자)', 'err'); input.focus(); return; }
+
+      const item = mk('article', 'ask-item pending');
+      const a = mk('div', 'a', '답변을 만드는 중이에요…');
+      item.append(mk('div', 'q', question), a);
+      log.prepend(item);
+      log.setAttribute('aria-busy', 'true');
+      setBusy(true);
+      setNote('');
+      try {
+        const res = await fetch('/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data && typeof data.answer === 'string' && data.answer) {
+          a.textContent = data.answer;
+          item.classList.remove('pending');
+          while (log.children.length > KEEP) log.lastElementChild.remove();
+          // 기다리는 동안 새로 입력한 내용이 있으면 지우지 않는다.
+          if (input.value.trim() === question) input.value = '';
+          setNote('답변을 받았어요.', 'ok');
+        } else {
+          const msg = data && typeof data.error === 'string' ? data.error : '답변을 받지 못했습니다. 잠시 후 다시 시도해 주세요.';
+          item.remove();
+          setNote(msg, 'err'); // 질문은 입력란에 그대로 둔다
+        }
+      } catch (e) {
+        item.remove();
+        setNote('연결에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'err');
+      } finally {
+        log.removeAttribute('aria-busy');
+        setBusy(false);
+      }
+    };
+
+    form.addEventListener('submit', (e) => { e.preventDefault(); ask(); });
   })();
 
   // 연락처

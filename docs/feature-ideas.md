@@ -48,3 +48,55 @@
 3. 목록 항목을 누르면 해당 위치로 이동하는지. 프로젝트 필터를 "개발"로 둔 채 기획 항목을 눌러도 보이는지.
 4. `?role=plan` 으로 열면 기획·설계가 선택된 상태인지. 잘못된 값(`?role=xyz`)이면 아무것도 선택되지 않고 주소에서 지워지는지.
 5. 좁은 화면(모바일)과 다크 모드에서 버튼과 목록이 깨지지 않는지.
+
+## 4. 2차 기능 (2026-11-05)
+
+리서치(포트폴리오 가이드·사례 모음)를 바탕으로 고른 top 3를 구현이 쉬운 순서로 추가했다.
+
+1. **06 지금 & 협업 방식** (PR #11): 지금 하는 일, 작업 도구, 연락 방법, 마지막 업데이트. `NOW` 데이터. 합류 가능 여부·답장 시간은 비워 둠(빈 값은 표시 안 함).
+2. **대표 프로젝트 자세히 보기** (PR #12): `FEATURED[].detail`(문제/내가 한 일/과정/결과/자료). 페이지에 이미 있는 수상·논문만 연결했고 나머지는 비워 둠.
+3. **07 AI에게 물어보기** (`api/ask.js`):
+   - 근거: `index.html`의 데이터 블록(`const PROFILE` ~ 닫는 `// =====`)을 서버가 읽어 시스템 지시에 넣는다. 사진(base64)은 뺀다.
+   - 모델: `gemini-3.1-flash-lite`, 붐비면(429/5xx/시간 초과) `gemini-3.5-flash-lite`로 한 번 더. `GEMINI_MODEL`로 바꿀 수 있다.
+   - 제한: 방문자(IP를 서버 비밀키로 HMAC 해시)별 시간당 10회, 사이트 전체 하루(한국 시간) 200회. Supabase `public.ask_usage` + `public.ask_take()`(service_role만 실행). 질문 내용·IP 원문은 저장하지 않는다.
+   - 입력: `{ question }` 1~300자, 제어문자 금지, JSON만, 같은 출처만. 답은 화면에 textContent로만 넣는다.
+   - Preview 배포에는 키가 없어 502가 난다(Production만 등록).
+   - 근거 데이터에서 편집용 주석(`// ...`)과 base64 이미지는 뺀다. 블록에 `const NOW`가 없거나 40,000자를 넘으면 오류로 멈추며, `npm run validate`가 같은 검사를 한다.
+   - 시간: Supabase 확인 3초, 모델 1회 12초, 두 모델 합계 22초(함수 최대 30초). IPv6는 /64 단위로 센다.
+   - 키·데이터가 준비되지 않았으면 횟수를 쓰기 전에 멈춘다. 횟수 제한 설정이 없으면 막는다(로컬 시험만 `ASK_NO_LIMIT=1`).
+
+### Supabase SQL (적용됨, 마이그레이션 `ask_usage_rate_limit`)
+
+```sql
+create table if not exists public.ask_usage (
+  bucket text primary key,
+  count integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+create index if not exists ask_usage_updated_at_idx on public.ask_usage (updated_at);
+alter table public.ask_usage enable row level security;
+revoke all on table public.ask_usage from anon, authenticated;
+
+-- 반환: 'ok' | 'ip' (방문자 한도 초과) | 'day' (사이트 하루 한도 초과)
+create or replace function public.ask_take(
+  p_ip_bucket text, p_day_bucket text, p_ip_limit integer, p_day_limit integer
+) returns text language plpgsql security invoker set search_path = public as $$
+declare v_ip integer; v_day integer;
+begin
+  insert into public.ask_usage as u (bucket, count) values (p_ip_bucket, 1)
+    on conflict (bucket) do update set count = u.count + 1, updated_at = now()
+    returning u.count into v_ip;
+  if v_ip > p_ip_limit then return 'ip'; end if;
+  insert into public.ask_usage as u (bucket, count) values (p_day_bucket, 1)
+    on conflict (bucket) do update set count = u.count + 1, updated_at = now()
+    returning u.count into v_day;
+  if v_day = 1 then
+    delete from public.ask_usage where updated_at < now() - interval '2 days';
+  end if;
+  if v_day > p_day_limit then return 'day'; end if;
+  return 'ok';
+end; $$;
+
+revoke all on function public.ask_take(text, text, integer, integer) from public, anon, authenticated;
+grant execute on function public.ask_take(text, text, integer, integer) to service_role;
+```
