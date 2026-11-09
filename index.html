@@ -406,6 +406,7 @@
   .d-sec.mine h2 { color: var(--accent); }
   .d-sec.mine .d-list { color: var(--ink); }
   .d-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .d-link-note { margin-top: 8px; font-size: 14px; color: var(--muted); }
   .d-links a { padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 15px; border: 1px solid var(--ink); }
   .d-links a:hover { background: var(--ink); color: var(--bg); }
   .d-nav {
@@ -888,7 +889,7 @@
       meta: [['기간', '2026.08 – 현재'], ['팀', '4인 팀 (경영정보학부)'], ['역할', 'PM, 데이터 엔지니어링'], ['결과', '🏆 Vibe Coding Challenge 대상']],
       stack: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'LLM 추출', 'OCR', 'Vercel'],
       cover: { src: IMG + 'konnect-cover.jpg', alt: 'Konnect 로고와 실제 앱 홈·공지 상세 화면' },
-      links: [{ label: 'Konnect 서비스 바로가기', url: 'https://konnect-virid.vercel.app' }],
+      links: [{ label: 'Konnect 서비스 바로가기', url: 'https://konnect-virid.vercel.app', note: '국민대학교 재학생 전용 서비스라, 가입과 이용은 재학생만 할 수 있습니다.' }],
       glance: { stats: [['48곳', '학교 게시판 공지를 매일 자동 수집'], ['39명', '재학생 설문으로 문제 검증'], ['대상', 'Vibe Coding Challenge']], did: 'PM으로 문제를 다시 정의하고, 공지 수집 → AI 조건 추출 → 지원 가능 판정까지 이어지는 데이터 파이프라인을 만들었습니다.' },
       sections: [
         { h: '시작: 동문 DB에서 출발해 문제를 다시 정의했습니다',
@@ -962,6 +963,7 @@
       meta: [['기간', '2026.05 – 2026.07'], ['대회', 'KMU x TUIT Global Startup Hackathon 2026 (우즈베키스탄 타슈켄트)'], ['팀', '한국·우즈베키스탄 연합팀'], ['역할', '팀 리더, 개발'], ['결과', '🏆 Global Startup Hackathon 2026 Grand Prize (대상)']],
       stack: ['Python', 'FastAPI', 'Gemini 멀티모달 OCR', '규칙 기반 판정 엔진', '다국어 지식베이스', 'PWA'],
       cover: { src: IMG + 'halal-cover.jpg', alt: 'Halal Lens 마스코트와 실제 판정 결과 화면' },
+      links: [{ label: 'Halal Lens 서비스 바로가기', url: 'https://halal-lens.vercel.app', note: '현재 API 키를 막아 두어, 사진으로 성분표를 읽는 AI 판독 기능은 동작하지 않습니다.' }],
       glance: { stats: [['30개+', '아이디어를 검토해 하나를 선택'], ['0건', '하람을 할랄로 잘못 판정 (회귀 테스트)'], ['Grand Prize', 'Global Startup Hackathon 2026']], did: '팀 리더로 현지 인터뷰 기반 문제 정의를 이끌고, AI 라벨 판독과 규칙 기반 판정 엔진, 웹앱 개발을 맡았습니다.' },
       sections: [
         { h: '배경: 먹어도 되는지 알 수 없는 수입식품',
@@ -1296,9 +1298,10 @@
         '<p class="g-did"><b>내가 한 일</b>' + d.glance.did + '</p></section>' : '') +
       '<dl class="d-meta">' + d.meta.map((m) => '<div><dt>' + m[0] + '</dt><dd>' + m[1] + '</dd></div>').join('') + '</dl>' +
       (d.stack ? '<div class="d-stack">' + tagList(d.stack) + '</div>' : '') +
+      (d.links ? '<div class="d-links">' + d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>').join('') + '</div>' +
+        d.links.filter((l) => l.note).map((l) => '<p class="d-link-note">' + l.note + '</p>').join('') : '') +
       (d.cover ? figure(d.cover, 'd-cover') : '') +
       '<div class="d-body">' + d.sections.map(sec).join('') +
-      (d.links ? '<div class="d-links">' + d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>').join('') + '</div>' : '') +
       '</div>' +
       '<nav class="d-nav" aria-label="다른 프로젝트">' +
       (prev ? '<a class="prev" href="' + '#p/' + prev.id + '"><small>← 이전 프로젝트</small><b>' + prev.title + '</b></a>' : '') +
