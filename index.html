@@ -254,24 +254,99 @@
   }
   @media (max-width: 760px) { .featured { grid-template-columns: 1fr; } }
 
-  /* 대표 프로젝트 자세히 보기 */
-  .detail { margin-top: 16px; border-top: 1px dashed var(--line); padding-top: 12px; }
-  .detail summary {
-    cursor: pointer; font-size: 15px; font-weight: 700; color: var(--accent);
-    list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  /* 프로젝트 카드·목록 → 상세 이동 */
+  a.card { color: inherit; }
+  a.card:focus-visible, .plist .plink:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .card .more, .plist .more {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+    font-size: 14px; font-weight: 700; color: var(--accent);
   }
-  .detail summary::-webkit-details-marker { display: none; }
-  .detail summary::after { content: "+"; font-size: 18px; line-height: 1; }
-  .detail[open] summary::after { content: "−"; }
-  .detail summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
-  .detail dl { margin-top: 12px; display: grid; gap: 10px; }
-  .detail dl div { display: grid; grid-template-columns: 72px 1fr; gap: 12px; }
-  .detail dt { font-size: 14px; font-weight: 700; color: var(--muted); padding-top: 2px; }
-  .detail dd { font-size: 15px; line-height: 1.6; }
-  .detail dd li { position: relative; padding-left: 12px; }
-  .detail dd li::before { content: "·"; position: absolute; left: 0; color: var(--accent); font-weight: 800; }
-  .detail dd a { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
-  @media (max-width: 480px) { .detail dl div { grid-template-columns: 1fr; gap: 2px; } }
+  .card:hover .more { text-decoration: underline; }
+  .plist li { position: relative; }
+  .plist .plink::after { content: ""; position: absolute; inset: 0; }
+  .plist li:hover .t { color: var(--accent); }
+  .plist .more { margin-top: 0; font-size: 13px; }
+
+  /* 프로젝트 상세 */
+  #detail { padding-top: 40px; padding-bottom: 40px; }
+  #detailTitle:focus { outline: none; }
+  .d-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 15px; font-weight: 700; color: var(--muted);
+  }
+  .d-back:hover { color: var(--ink); }
+  .d-head { margin-top: 36px; max-width: 820px; }
+  .d-head .eyebrow { letter-spacing: 0.1em; text-transform: none; }
+  .d-head h1 { margin-top: 16px; font-size: clamp(34px, 6vw, 64px); font-weight: 800; letter-spacing: -0.045em; line-height: 1.1; }
+  .d-head .lead { margin-top: 20px; font-size: clamp(17px, 2.2vw, 21px); color: var(--muted); }
+  .d-head .lead b { color: var(--ink); font-weight: 600; }
+  .d-meta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-top: 40px; border-top: 2px solid var(--ink);
+  }
+  .d-meta div { padding: 16px 16px 16px 0; border-bottom: 1px solid var(--line); }
+  .d-meta dt { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.06em; }
+  .d-meta dd { margin-top: 4px; font-size: 16px; font-weight: 600; line-height: 1.5; }
+  .d-stack { margin-top: 16px; }
+  .d-fig { margin-top: 32px; }
+  .d-fig img {
+    display: block; width: 100%; height: auto; border-radius: 16px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .d-fig figcaption { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .d-cover { margin-top: 48px; }
+  .d-body { max-width: 820px; }
+  .d-sec { margin-top: 72px; }
+  .d-sec h2 {
+    display: flex; align-items: baseline; gap: 12px;
+    font-size: clamp(22px, 3vw, 30px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.3;
+  }
+  .d-sec h2 .n { flex: none; font-size: .7em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .d-sec > p { margin-top: 16px; font-size: 17px; color: var(--muted); }
+  .d-sec > p b, .d-list b, .d-items dd b { color: var(--ink); font-weight: 600; }
+  .d-list { margin-top: 16px; font-size: 17px; color: var(--muted); }
+  .d-list li { position: relative; padding: 6px 0 6px 20px; }
+  .d-list li::before { content: ""; position: absolute; left: 2px; top: 18px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .d-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
+  .d-stats div { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .d-stats b { display: block; font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .d-stats span { display: block; margin-top: 6px; font-size: 15px; color: var(--muted); line-height: 1.5; }
+  .d-quote {
+    margin-top: 20px; padding: 24px 28px; border-left: 4px solid var(--accent);
+    background: var(--accent-soft); border-radius: 0 16px 16px 0;
+    font-size: clamp(18px, 2.4vw, 22px); font-weight: 700; line-height: 1.5; letter-spacing: -0.02em;
+  }
+  .d-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 20px; }
+  .d-items div { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
+  .d-items dt { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+  .d-items dd { margin-top: 6px; font-size: 15px; color: var(--muted); line-height: 1.6; }
+  .d-sec.mine {
+    background: var(--surface); border: 2px solid var(--accent); border-radius: 24px;
+    padding: clamp(24px, 4vw, 40px);
+  }
+  .d-sec.mine h2 { color: var(--accent); }
+  .d-sec.mine .d-list { color: var(--ink); }
+  .d-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .d-links a { padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 15px; border: 1px solid var(--ink); }
+  .d-links a:hover { background: var(--ink); color: var(--bg); }
+  .d-nav {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-top: 96px; padding-top: 24px; border-top: 2px solid var(--ink);
+  }
+  .d-nav a {
+    display: block; padding: 18px 20px; border-radius: 16px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .d-nav a:hover { border-color: var(--accent); }
+  .d-nav a.next { text-align: right; grid-column: 2; }
+  .d-nav small { display: block; font-size: 13px; color: var(--muted); }
+  .d-nav b { display: block; margin-top: 2px; font-size: 17px; letter-spacing: -0.02em; line-height: 1.4; }
+  @media (max-width: 560px) {
+    .d-nav { grid-template-columns: 1fr; }
+    .d-nav a.next { grid-column: auto; }
+    .d-sec { margin-top: 56px; }
+  }
+
 
   .more-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 64px 0 4px; }
   .more-head .sub-head { margin: 0; }
@@ -564,6 +639,9 @@
   </section>
 </main>
 
+<!-- 프로젝트 상세: 주소가 #p/<id> 일 때 main 대신 보인다 -->
+<article id="detail" class="wrap" hidden></article>
+
 <footer><div class="wrap" id="footer"></div></footer>
 
 <script>
@@ -655,49 +733,36 @@
   ];
 
   // 대표 프로젝트: 크게 보여 줄 것만. facts 는 [라벨, 내용] 형식
-  // detail: 카드의 '자세히 보기'에 펼쳐지는 내용. 빈 값('' 또는 [])은 표시하지 않고, 모두 비면 버튼도 나오지 않는다.
-  //   problem: 풀려던 문제 / did: 내가 직접 한 일 [] / process: 진행 과정 / results: 결과 [] / links: [{ label, url }]
+  // 카드를 누르면 아래 DETAILS 의 같은 id 상세 페이지로 이동한다
   const FEATURED = [
-    { date: '2026.08 – 현재', title: 'Konnect', org: '',
+    { id: 'konnect', date: '2026.08 – 현재', title: 'Konnect', org: '',
       facts: [
         ['무엇', '교내 프로그램 공지를 <b>학생 맞춤형</b>으로 제공하고, 참여자와 학생을 연결해 일정 관리를 돕는 서비스'],
         ['역할', 'PM, 데이터 엔지니어링'],
-        ['현황', '2026년 8월부터 진행 중']
+        ['결과', '🏆 Vibe Coding Challenge <b>대상</b>']
       ],
-      tags: ['프로젝트 관리', '시스템 디자인'], roles: ['plan', 'build'],
-      detail: { problem: '', did: [], process: '', results: [], links: [] } },
-    { date: '2026.05 – 2026.07', title: 'Halal Lens', org: 'KMU x TUIT Global Startup Hackathon 2026',
+      tags: ['프로젝트 관리', '시스템 디자인'], roles: ['plan', 'build'] },
+    { id: 'halal-lens', date: '2026.05 – 2026.07', title: 'Halal Lens', org: 'KMU x TUIT Global Startup Hackathon 2026',
       facts: [
         ['무엇', '<b>OCR로 할랄과 하람을 구별</b>해 주는 AI 서비스'],
         ['역할', '팀 리더, 개발'],
         ['결과', '🏆 <b>Grand Prize</b>']
       ],
-      tags: ['디자인사고', 'AI 에이전트'], roles: ['plan', 'build'],
-      detail: { problem: '', did: [], process: '',
-        results: ['KMU x TUIT Global Startup Hackathon 2026 <b>Grand Prize</b> (2026.07)'], links: [] } },
-    { date: '2026.03 – 2026.06', title: '도리', org: '국민대학교',
+      tags: ['디자인사고', 'AI 에이전트'], roles: ['plan', 'build'] },
+    { id: 'dori', date: '2026.03 – 2026.06', title: '도리', org: '국민대학교',
       facts: [
         ['무엇', '<b>사내 소통을 관리하는 B2B AI Agent</b> 서비스'],
         ['역할', 'PM. 생성형 AI와 디자인씽킹으로 기획하고 구축'],
         ['결과', '🏆 캡스톤디자인 경진대회 <b>우수상</b>']
       ],
-      tags: ['프로젝트 관리', '디자인사고'], roles: ['plan', 'build'],
-      detail: { problem: '', did: [], process: '',
-        results: ['국민대학교 경영정보학부 캡스톤디자인 경진대회 <b>우수상</b> (2026.06)'], links: [] } },
-    { date: '2025.03 – 2025.12', title: '한국어 가짜뉴스 탐지 연구', org: '국민대학교 ITIS AI 연구팀',
+      tags: ['프로젝트 관리', '디자인사고'], roles: ['plan', 'build'] },
+    { id: 'fake-news', date: '2025.03 – 2025.12', title: '한국어 가짜뉴스 탐지 연구', org: '국민대학교 ITIS AI 연구팀',
       facts: [
         ['무엇', '생성형 AI로 <b>한국어 가짜뉴스 데이터셋</b>을 구축하고 탐지 모델을 비교 분석'],
         ['역할', '팀 리더, 논문 제1저자'],
         ['결과', '<b>지능정보연구</b> 논문 게재']
       ],
-      tags: ['생성형 AI', '데이터셋 구축'], roles: ['plan', 'validate'],
-      detail: { problem: '', did: [], process: '',
-        results: [
-          '<b>지능정보연구</b> 제31권 제4호 논문 게재 (2025.12)',
-          '한국정보기술학회 대학생논문경진대회 <b>동상</b> (2025.12)',
-          '이어서 국민대학교 Undergraduate Researcher(2026.07–08)로 가짜뉴스 이미지 자동화 파이프라인과 VLM 연구'
-        ],
-        links: [{ label: '논문 보기 (DBpia)', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' }] } }
+      tags: ['생성형 AI', '데이터셋 구축'], roles: ['plan', 'validate'] }
   ];
 
   // 그 외 프로젝트·활동: 한 줄 목록
@@ -723,6 +788,141 @@
     { cat: 'edu', date: '2024.08 – 2025.08', role: '세미나 활동', title: 'YLA 19기', org: '아름다운서당',
       desc: '인문 고전 세미나와 사회과학 케이스 스터디' }
   ];
+
+  // 프로젝트 상세 페이지 내용 (키 = 위 프로젝트의 id)
+  //  - lead: 한 줄 소개 / meta: [라벨, 내용] / stack: 도구·기술
+  //  - sections: { h: 제목, p: [문단], list: [항목], stats: [[숫자, 설명]],
+  //                quote: 강조 문장, items: [[이름, 설명]], img: { src, alt, cap }, mine: true(내가 맡은 일 강조) }
+  const IMG = 'assets/projects/';
+  const DETAILS = {
+    'konnect': {
+      lead: '학교 곳곳에 흩어진 교내 활동 공지를 모아 <b>학생에게 맞는 활동을 추천</b>하고, 먼저 참여한 재학생·동문의 <b>후기와 1:1 대화</b>로 참여를 준비하도록 돕는 서비스입니다.',
+      meta: [['기간', '2026.08 – 현재'], ['팀', '4인 팀 (경영정보학부)'], ['역할', 'PM, 데이터 엔지니어링'], ['결과', '🏆 Vibe Coding Challenge 대상']],
+      stack: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'LLM 추출', 'OCR', 'Vercel'],
+      cover: { src: IMG + 'konnect-01.jpg', alt: 'Konnect 발표 표지: 기회와 경험을 하나로 연결하다' },
+      sections: [
+        { h: '시작: 동문 DB에서 출발해 문제를 다시 정의했습니다',
+          p: ['학부장님 인터뷰에서 경영정보학부 동문 DB가 <b>2009년 이후 갱신되지 않았다</b>는 문제를 들었습니다. 처음에는 추천 기반의 동문 DB 시스템을 기획했지만, 개인정보 보호 문제로 DB를 확보하지 못했고 학생회가 이미 엑셀로 소규모 관리를 하고 있었으며, 동문이 꾸준히 쓸 이유도 부족했습니다.',
+              '그래서 한계를 인정하고 질문을 바꿨습니다. <b>“어떻게 하면 재학생이 동문의 노하우를 지속적이고 구체적으로 전달받아 성장하고, 동문이 된 뒤에는 후배를 돕는 선순환을 만들 수 있을까?”</b>'] },
+        { h: '데이터로 문제를 확인했습니다',
+          stats: [['85.2%', 'ON국민 앱 개선이 필요하다 (국민대신문, 재학생 250명)'], ['71.8%', '자신에게 맞는 활동을 찾기 어렵다 (자체 설문, 경영정보 재학생 39명)'], ['71.8%', '이전 참여자에게 묻고 싶어도 물어볼 사람을 찾지 못했다'], ['87.2%', '활동 후기를 한곳에서 보는 서비스가 있으면 쓰겠다']],
+          p: ['경영대학 취창업지원센터와 경력개발지원단 선생님 인터뷰에서도 <b>공지나 지원 기관의 존재 자체를 모르는 고학년</b>이 있다는 이야기를 들었습니다. 학교는 여러 채널로 기회를 알리지만, 학생이 이를 발견하고 참여를 판단하는 과정에는 여전히 빈틈이 있었습니다.'],
+          img: { src: IMG + 'konnect-02.jpg', alt: '데이터 기반 문제 탐색 슬라이드', cap: '설문·기사·동문 DB 현황으로 문제를 확인했습니다.' } },
+        { h: '문제 정의',
+          quote: '경영정보학부 재학생은 원하는 활동을 탐색하는 과정이 불편하고, 참여 판단과 준비에 필요한 조언을 얻기 힘들다.',
+          p: ['ON국민 K*Talk, Kookmin-Feed, 유니뷰 같은 기존 서비스는 <b>탐색 단계까지만</b> 돕습니다. Konnect는 탐색 → 판단 → 확신 → 준비의 모든 단계를 함께하도록 설계했습니다.'],
+          img: { src: IMG + 'konnect-05.jpg', alt: '탐색, 판단, 확신, 준비 4단계 사용자 여정', cap: '기존 서비스가 멈추는 지점과 Konnect가 함께하는 범위' } },
+        { h: '해결: 기회와 경험을 연결합니다',
+          items: [['활동 탐색', '학교 공지를 한곳에 모아 요약하고, 학생이 입력한 학적 정보로 <b>지원 가능 여부를 자동 판정</b>해 맞는 활동을 추천합니다.'],
+                  ['경험 공유', '먼저 참여한 재학생·동문의 리뷰로 실제 활동 내용과 준비 팁을 보고, 더 궁금하면 <b>1:1 대화</b>를 요청합니다.'],
+                  ['일정 관리', '관심 활동을 저장해 달력에서 보고, 준비할 일과 <b>마감 알림</b>으로 서류와 기한을 놓치지 않게 합니다.']],
+          img: { src: IMG + 'konnect-06.jpg', alt: '기회와 경험을 연결하는 핵심 기능 슬라이드', cap: '재학생뿐 아니라 선배·동문까지 경험을 나누는 구조' } },
+        { h: '제가 맡은 일', mine: true,
+          list: ['<b>PM</b>: 학부장님 인터뷰에서 출발해 문제를 재정의하고, 설문·인터뷰 설계, 서비스 기획서, 화면 시안(웹 프로토타입)을 만들었습니다.',
+                 '<b>데이터 파이프라인</b>: 학교 게시판 48곳의 공지를 수집 → 개인정보 가리기 → 포스터 글자 인식(OCR) → AI로 지원 조건 추출 → 사람 확인 → DB 적재까지 잇고, 매일 자동 실행되게 했습니다.',
+                 '<b>품질 관리</b>: 다른 회사의 AI가 추출 결과를 원문과 대조해 채점하는 평가 구조를 두고, 지시문을 여러 차례 고쳐 정확도를 높였습니다. 수집은 robots.txt와 요청 간격을 지킵니다.',
+                 '<b>지원 가능 판정 규칙</b>: 학년·학적·졸업 시기 조건을 판정하고, 확실하지 않으면 ‘확인 필요’로 두었습니다. <b>지원할 수 있는 학생에게 ‘지원 불가’로 보이는 것</b>을 가장 나쁜 오류로 정하고 막았습니다.',
+                 '1학년 팀원에게 AI 도구 활용법을 기초부터 알려 주며 함께 개발했습니다.'] },
+        { h: '결과',
+          list: ['🏆 <b>Vibe Coding Challenge 대상</b>', '교수님 2명·재학생 6명의 피드백과 재학생 3명·졸업생 3명의 사용성 테스트를 거쳐 라이브 데모로 발표', '경영정보학부 파일럿 후 다른 학부로 넓히고, 후배 운영진에게 넘겨줄 수 있도록 운영 문서를 정리하는 것이 다음 목표입니다.'] },
+        { h: '배운 점',
+          p: ['처음 기획이 막혔을 때 한계를 인정하고 문제를 다시 정의한 것이 프로젝트를 살렸습니다. 또 정보를 <b>찾게 해 주는 것</b>만큼, 무엇을 준비하고 <b>누구에게 물어보면 되는지</b> 알려 주는 것이 중요하다는 점을 배웠습니다.'] }
+      ]
+    },
+
+    'halal-lens': {
+      lead: '성분표를 찍으면 여러 언어로 된 라벨을 읽고 성분을 분석해 <b>할랄 · 의심 · 하람</b>을 이유와 함께 알려 주는 AI 웹앱입니다. 발표명은 <b>Halal Check</b>입니다.',
+      meta: [['기간', '2026.05 – 2026.07'], ['대회', 'KMU x TUIT Global Startup Hackathon 2026 (우즈베키스탄 타슈켄트)'], ['팀', '한국·우즈베키스탄 연합팀'], ['역할', '팀 리더, 개발'], ['결과', '🏆 Grand Prize (대상)']],
+      stack: ['Python', 'FastAPI', 'Gemini 멀티모달 OCR', '규칙 기반 판정 엔진', '다국어 지식베이스', 'PWA'],
+      cover: { src: IMG + 'halal-01.jpg', alt: 'Halal Check 발표 표지: When in doubt, scan it!' },
+      sections: [
+        { h: '배경: 먹어도 되는지 알 수 없는 수입식품',
+          p: ['우즈베키스탄은 인구의 88~94%가 무슬림이고, 2025년부터 할랄 인증 절차가 공식화되었으며 한국 제품의 영향력도 커지고 있습니다. 그런데 수입식품의 성분표는 여러 언어로 적혀 있고 할랄 인증 표시가 없는 경우가 많아, 소비자가 <b>먹어도 되는 식품인지 판단하기 어려웠습니다.</b>'] },
+        { h: '30개가 넘는 아이디어에서 하나를 골랐습니다',
+          p: ['공신력 있는 통계 데이터를 살펴보고, 우즈베키스탄 팀원들과 함께 <b>현지인을 인터뷰</b>했으며, 현직자와 문제의 원인과 해결 방법을 논의했습니다. 인터뷰에서 얻은 발견은 네 가지였습니다.'],
+          items: [['할랄 마크가 신뢰를 만든다', '소비자는 할랄 마크부터 확인하고, 없으면 불확실성이 커집니다.'], ['언어 장벽', '외국어 라벨은 구매 현장에서 이해하기 어렵습니다.'], ['번역만으로는 부족하다', '번역해도 젤라틴·유화제 같은 성분은 할랄인지 알 수 없습니다.'], ['불확실하면 포기한다', '확인이 어려우면 다른 제품을 고르거나 구매를 포기합니다.']],
+          img: { src: IMG + 'halal-05.jpg', alt: '현지 소비자 인터뷰 질문과 답변', cap: '현지 소비자 인터뷰: “제품이 할랄인지, 왜 그런지 간단히 설명해 주면 좋겠다”' } },
+        { h: '문제 정의',
+          quote: '사용자에게 필요한 것은 번역된 라벨이 아니라, 제품을 확인할 수 있는 명확하고 믿을 수 있는 방법이다.' },
+        { h: '해결: 라벨에서 할랄 판단까지',
+          items: [['성분 단위 판정', '제품 전체 결과와 함께 성분마다 판정 이유와 위험도를 보여 줍니다.'], ['개인 맞춤 기준', '사용자가 고른 이슬람 법학파(마즈합) 기준과 알레르기 필터를 적용합니다.'], ['지속 지원', '스캔 기록, 성분 검색, 불확실한 성분을 확인하는 AI 도우미를 제공합니다.'], ['커뮤니티 평가', '다른 사용자의 평가와 경험을 참고 정보로 보여 줍니다(공식 판정은 아님).']],
+          img: { src: IMG + 'halal-12.jpg', alt: '라벨 촬영부터 판정 결과까지 서비스 흐름 화면', cap: '서비스 흐름: 촬영 → 성분 분석 → 판정 결과' } },
+        { h: '믿을 수 있는 판정을 위한 설계',
+          p: ['핵심 원칙은 <b>“AI는 읽기만, 판정은 지식베이스가 한다”</b>입니다. 멀티모달 AI는 라벨을 읽어 성분 목록으로 나누는 일만 하고, 할랄 여부는 하지 않습니다. 판정은 성분·E넘버·다국어 별칭이 담긴 지식베이스와 정해진 규칙으로 내리고, <b>모르는 성분은 할랄로 가정하지 않고 ‘의심’으로 둡니다.</b> AI가 잘못 읽어 틀린 판정을 내리는 일을 막기 위해서입니다.'],
+          list: ['<b>정확성</b>: 회귀 테스트 세트에서 ‘하람인데 할랄로 판정’한 경우 0건', '<b>일관성</b>: 같은 입력에는 항상 같은 결과 (규칙 기반 판정)', '<b>투명성</b>: 모든 판정에 이유·출처·신뢰도를 함께 표시', '한국어·러시아어·우즈베크어·영어 4개 언어 화면과 성분 설명 지원'],
+          img: { src: IMG + 'halal-19.jpg', alt: '시스템 구조도: OCR, 성분 파서, 지식베이스 매칭, 위험 패턴, 최종 집계', cap: '시스템 구조: OCR(읽기) → 성분 분리 → 지식베이스 대조 → 위험 패턴 점검 → 최종 집계' } },
+        { h: '제가 맡은 일', mine: true,
+          list: ['<b>팀 리더</b>: 30개가 넘는 아이디어를 검토해 방향을 정하고, 통계 조사와 현지 인터뷰를 바탕으로 문제를 정의했습니다.',
+                 '<b>개발</b>: FastAPI 백엔드, AI 라벨 판독 연동, 성분 지식베이스와 판정 엔진, 모바일 웹 화면 개발을 맡았습니다.',
+                 '<b>검증</b>: 정답 세트·오탐 테스트로 판정을 검증해 ‘하람을 할랄로 잘못 판정’하는 경우가 없도록 했습니다.'] },
+        { h: '결과',
+          list: ['🏆 현지 교수진 심사를 거쳐 <b>Grand Prize(대상)</b> 수상', '소비자 무료(B2C 프리미엄) + 수입·유통사 대상 B2B 대시보드·API로 이어지는 사업 모델 제안'] },
+        { h: '배운 점',
+          p: ['내가 생각한 문제가 <b>실제 이용자에게도 중요한지 먼저 확인하는 태도</b>를 배웠습니다. 그리고 AI 서비스에서 신뢰는 나중에 덧붙이는 것이 아니라, 처음부터 구조로 설계해야 한다는 것을 체감했습니다.'] }
+      ]
+    },
+
+    'dori': {
+      lead: '메시지를 보내기 전에 <b>톤·구조·타이밍·받는 사람</b>에 맞는지 AI가 함께 점검해 주는 <b>B2B 사내 소통 코칭 솔루션</b>입니다.',
+      meta: [['기간', '2026.03 – 2026.06'], ['수업', '국민대학교 캡스톤디자인 (2팀)'], ['역할', 'PM'], ['결과', '🏆 캡스톤디자인 경진대회 우수상']],
+      stack: ['디자인씽킹', '심층 인터뷰(IDI)', 'Dify AI Agent', 'RAG', 'Figma', 'Stitch'],
+      cover: { src: IMG + 'dori-01.jpg', alt: 'DORI 발표 표지: 소통 문제를 해결하는 B2B 코칭 솔루션' },
+      sections: [
+        { h: '세 사람의 문제를 동시에 봤습니다',
+          items: [['주니어 (실사용자)', '“팀장님께 보고 메일을 보내기 전에 썼다 지우기를 반복해요. 말투가 딱딱한지, 지금 보내도 되는지 걱정돼요.”'],
+                  ['매니저 (도입 제안자)', '“결론 없이 상황만 나열하니 답답해요. 결론과 대응을 간단명료하게 보고했으면 좋겠어요.”'],
+                  ['HR (예산 결정자)', '분기마다 교육을 반복해도 효과는 1~2주. 현업 배치 뒤의 소통 문제를 조직 차원에서 관리할 도구가 없습니다.']] },
+        { h: '심층 인터뷰로 핵심 관점을 좁혔습니다',
+          p: ['심층 인터뷰(IDI)로 7개의 관점(PoV)을 도출했고, 그중 <b>세 사람 모두에게 공통으로 해당하는 4개</b>에 집중했습니다.'],
+          list: ['<b>맥락 종합 점검</b>: 내용이 맞아도 타이밍·톤이 어긋나면 결례가 된다', '<b>메시지 구조 재배열</b>: 시니어는 [결론 → 원인 → 대응]을 원하지만 주니어는 자기 생각 순서대로 쓴다', '<b>AI 티 안 내기</b>: AI 도움을 받더라도 ‘AI가 쓴 티’가 나면 관계에 역효과', '<b>받는 사람 맞춤</b>: 같은 표현도 받는 사람에 따라 정중하게도, 무례하게도 읽힌다'],
+          img: { src: IMG + 'dori-06.jpg', alt: '핵심 PoV 4가지 정리 표', cap: 'IDI로 도출한 7개 PoV 중 공통 4개에 집중' } },
+        { h: '해결: 보내기 전, 신호등 점검',
+          p: ['도리는 글을 대신 써 주는 대신 <b>주니어가 직접 쓴 초안을 함께 점검하고 고칩니다.</b> 쓸수록 스스로 소통 역량이 자라는 교육 효과를 함께 노렸습니다.'],
+          items: [['1. 온보딩', '8개 문항으로 사용자의 소통 성향을 파악합니다.'], ['2. 관계 맵', '조직 내 직급·관계와 함께한 프로젝트를 시각화합니다.'], ['3. 채팅', '상황을 짧게 설명하면 단계별로 정리하고 발송 시간까지 추천합니다.'], ['4. 신호등 점검', '4가지 기준으로 점검해 🟢 이면 발송, 🟠🔴 이면 AI 코칭을 받습니다.'], ['5. 최종 수정·발송', '모두 🟢 가 되면 최종안을 보여 주고 반복해서 다듬을 수 있습니다.']],
+          img: { src: IMG + 'dori-12.jpg', alt: '신호등 점검 핵심 기능 화면', cap: '핵심 기능: 4가지 점검 후 초록불이면 발송, 주황불 이상이면 도리 AI 코칭' } },
+        { h: '프로토타입 구현',
+          p: ['Dify 채팅플로우로 <b>의도 파악 → 지식 검색 → 메시지 출력</b>을 하는 AI 에이전트를 만들고, 신호등 코칭은 워크플로우의 조건 분기와 초안 판단·재작성 단계로 구현했습니다. 지식은 두 층으로 나눴습니다. 모든 기업에 공통으로 쓰는 <b>기본 예절 데이터</b>(인터뷰로 얻은 시니어 인사이트, 업무 예절 10종) 위에 기업마다 HR이 넣는 <b>사내 플레이북·금기어</b>가 우선 적용됩니다.'],
+          img: { src: IMG + 'dori-16.jpg', alt: '프로토타입 구현 방식 표', cap: 'Dify 에이전트 + RAG 지식베이스 + 2단 지식 구조' } },
+        { h: '시장과 사업 모델',
+          p: ['범용 AI, Blind, Remember, 카카오 카나나와 비교해 <b>조직 단위로 사내 상향 소통을 관리하는 솔루션이 없다</b>는 빈자리를 찾고, 이를 IRM(Inbound Relationship Management)이라는 새 카테고리로 정의했습니다. 도입 초기 무료부터 시작하는 생애주기 3단계 과금과 HR 인사이트 프리미엄 옵션을 설계했습니다.'],
+          img: { src: IMG + 'dori-22.jpg', alt: '경쟁사 비교 표', cap: '경쟁 서비스와 비교한 도리의 포지션' } },
+        { h: '제가 맡은 일', mine: true,
+          list: ['<b>PM</b>으로 생성형 AI와 디자인씽킹 방법론을 활용해 기획부터 프로토타입 구축까지 이끌었습니다.',
+                 '심층 인터뷰 과제에서 요구된 인원은 1명이었지만 <b>자발적으로 2명을 인터뷰</b>해 양쪽 시각을 비교했고, 겉으로 드러난 불편 너머의 진짜 문제를 찾았습니다.'] },
+        { h: '결과',
+          list: ['🏆 <b>캡스톤디자인 경진대회 우수상</b> (국민대학교 경영정보학부, 2026.06)'] },
+        { h: '배운 점',
+          p: ['디자인씽킹의 공감 단계가 사용자의 진짜 문제를 찾는 데 얼마나 강력한지 직접 체감했습니다. 이 경험은 이후 해커톤에서 현지 인터뷰로 문제를 찾는 방식으로 이어졌습니다.'] }
+      ]
+    },
+
+    'fake-news': {
+      lead: '생성형 AI로 <b>한국어 정치 가짜뉴스 데이터셋 4,000건</b>을 만들어 공개하고, 21개 탐지 모델을 비교해 실제 서비스에 쓸 수 있는 조합을 찾은 연구입니다.',
+      meta: [['기간', '2025.03 – 2025.12'], ['소속', '국민대학교 ITIS AI 연구팀'], ['역할', '팀 리더, 논문 제1저자'], ['결과', '지능정보연구(KCI) 게재 · 학회 논문경진대회 동상']],
+      stack: ['Python', 'GPT-4o API', 'KLUE-BERT', 'KoBERT', 'Mecab + Doc2Vec', '머신러닝·앙상블'],
+      sections: [
+        { h: '문제: 한국어로는 연구할 데이터가 부족했습니다',
+          p: ['생성형 AI가 사람이 쓴 기사와 구분하기 어려운 글을 대량으로 만들면서, 정치 영역의 가짜뉴스가 사회의 정보 신뢰를 위협하고 있습니다. 하지만 한국어는 영어권보다 <b>검증된 데이터셋의 규모와 다양성이 크게 부족</b>하고, 영어 중심으로 학습된 모델은 한국어에서 성능이 떨어집니다. 실제로 기존 한국어 연구 중에는 정확도가 59.8%에 그친 경우도 있었습니다.'] },
+        { h: '방법 1: 생성형 AI로 데이터셋을 만들었습니다',
+          p: ['실제 가짜뉴스는 완전한 거짓보다 <b>사실 일부를 바탕으로 의미를 비트는</b> 경우가 많습니다. 그래서 원문의 핵심 사실(kernel of truth)은 유지한 채 해석과 맥락만 왜곡하도록 지시했습니다.'],
+          items: [['최소 제약 생성', '원문만 주고 가짜뉴스를 만들게 해 AI의 기본 왜곡 전략을 파악'], ['페르소나 + 단계적 사고', '명시적 페르소나와 Chain-of-Thought로 구체적인 조작 전략을 담게 함'], ['다중 페르소나 + 조작 수준', '여러 페르소나와 조작 강도를 조합해 다양성 확보']],
+          list: ['진짜 뉴스 2,000건 + 가짜뉴스 2,000건 = <b>총 4,000건</b>의 한국어 정치 뉴스 데이터셋', '다른 연구자가 쓸 수 있도록 <b>GitHub에 공개</b>'] },
+        { h: '방법 2: 21개 탐지 모델을 비교했습니다',
+          p: ['문장을 숫자로 바꾸는 방식(임베딩) 3가지 — <b>Mecab+Doc2Vec, KoBERT, KLUE-BERT</b> — 에 전통적 머신러닝과 딥러닝 분류기를 조합해 총 21개 모델의 성능을 체계적으로 비교했습니다.'] },
+        { h: '결과',
+          stats: [['0.9966', 'KLUE-BERT 임베딩 + Voting 앙상블의 F1-score (최고 성능)'], ['1.0', 'GPT-4o로 다시 쓴 테스트셋 400건에서의 정확도'], ['4,000건', '구축·공개한 한국어 가짜뉴스 데이터셋']],
+          p: ['최고 조합은 파인튜닝한 모델과 비슷한 정확도를 내면서도 <b>연산 자원이 적게 들어</b> 실제 서비스에 적용하기 좋습니다. 문체를 바꾼 테스트에서도 성능이 유지되어, 모델이 말투가 아니라 가짜뉴스의 구조와 내용 패턴을 학습했음을 확인했습니다.'],
+          list: ['<b>지능정보연구</b> 제31권 제4호 게재 (KCI 등재, 2025.12)', '같은 주제의 「생성형 AI를 활용한 한국어 가짜뉴스 탐지 고도화 연구」로 <b>한국정보기술학회 대학생논문경진대회 동상</b>'] },
+        { h: '제가 맡은 일', mine: true,
+          list: ['<b>팀 리더</b>로 연구 주제 설정부터 실험, 학술대회 발표, 학술지 게재까지 연구 전 과정을 이끌었습니다.',
+                 '팀과 함께 GPT-4o 기반 생성 전략을 설계해 데이터셋을 구축했습니다.',
+                 '임베딩·분류기 조합 실험을 설계해 비교 분석하고, <b>제1저자</b>로 논문을 썼습니다.'] },
+        { h: '한계와 다음 단계',
+          p: ['데이터셋이 정치 분야로 한정되어 일반화 능력을 충분히 평가하기 어렵고, 출처 신뢰도나 전파 경로 같은 비텍스트 정보는 다루지 못했습니다. 경제·보건 등 다른 분야로 데이터셋을 넓히는 것이 다음 과제입니다.'] }
+      ],
+      links: [{ label: '논문 보기 (DBpia)', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' }]
+    }
+  };
 
   const PAPERS = [
     { t: '생성형 AI 기반 한국어 가짜뉴스 데이터셋 구축 및 탐지 모델 비교 분석 연구', m: '지능정보연구 제31권 제4호 · 한국지능정보시스템학회 · 2025.12.16', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' },
@@ -832,29 +1032,86 @@
     '<div class="tl-org">' + e.org + '</div>' +
     '<ul class="desc">' + e.desc.map((d) => '<li>' + d + '</li>').join('') + '</ul>' + tagList(e.tags) + '</div>').join('');
 
-  // 대표 프로젝트 '자세히 보기'. 채워진 항목만 보여 주고, 아무것도 없으면 빈 문자열.
-  const detailBlock = (d) => {
-    if (!d) return '';
-    const list = (xs) => '<ul>' + xs.map((x) => '<li>' + x + '</li>').join('') + '</ul>';
-    const rowsOut = [];
-    if (d.problem) rowsOut.push(['문제', '<p>' + d.problem + '</p>']);
-    if (d.did && d.did.length) rowsOut.push(['내가 한 일', list(d.did)]);
-    if (d.process) rowsOut.push(['과정', '<p>' + d.process + '</p>']);
-    if (d.results && d.results.length) rowsOut.push(['결과', list(d.results)]);
-    if (d.links && d.links.length) {
-      rowsOut.push(['자료', list(d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>'))]);
-    }
-    if (!rowsOut.length) return '';
-    return '<details class="detail"><summary>자세히 보기</summary><dl>' +
-      rowsOut.map((r) => '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>').join('') + '</dl></details>';
-  };
-
   // 프로젝트
   $('featured').innerHTML = FEATURED.map((p, i) =>
-    '<article class="card reveal" id="feat-' + i + '"><div class="date">' + p.date + '</div><h3>' + p.title + '</h3>' +
+    '<a class="card reveal" id="feat-' + i + '" href="#p/' + p.id + '"><div class="date">' + p.date + '</div><h3>' + p.title + '</h3>' +
     (p.org ? '<div class="org">' + p.org + '</div>' : '') +
     '<dl class="facts">' + p.facts.map((f) => '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>').join('') + '</dl>' +
-    detailBlock(p.detail) + tagList(p.tags) + '</article>').join('');
+    tagList(p.tags) + '<span class="more">자세히 보기 →</span></a>').join('');
+
+  // 프로젝트 상세 ----------------------------------------------------------
+  const ALL_PROJECTS = FEATURED.filter((p) => DETAILS[p.id]);
+  const stripTags = (html) => html.replace(/<[^>]*>/g, '');
+  const figure = (img, cls) => '<figure class="d-fig' + (cls ? ' ' + cls : '') + '">' +
+    '<img src="' + img.src + '" alt="' + img.alt + '" loading="lazy" decoding="async" width="1600" height="900">' +
+    (img.cap ? '<figcaption>' + img.cap + '</figcaption>' : '') + '</figure>';
+
+  const renderDetail = (p) => {
+    const d = DETAILS[p.id];
+    const i = ALL_PROJECTS.indexOf(p);
+    const prev = ALL_PROJECTS[i - 1];
+    const next = ALL_PROJECTS[i + 1];
+    let n = 0;
+    const sec = (s) => {
+      if (!s.mine) n += 1;
+      return '<section class="d-sec' + (s.mine ? ' mine' : '') + '"><h2>' +
+        (s.mine ? '' : '<span class="n">' + String(n).padStart(2, '0') + '</span>') + s.h + '</h2>' +
+        (s.quote ? '<blockquote class="d-quote">' + s.quote + '</blockquote>' : '') +
+        (s.stats ? '<div class="d-stats">' + s.stats.map((x) => '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>' : '') +
+        (s.p || []).map((x) => '<p>' + x + '</p>').join('') +
+        (s.items ? '<dl class="d-items">' + s.items.map((x) => '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>').join('') + '</dl>' : '') +
+        (s.list ? '<ul class="d-list">' + s.list.map((x) => '<li>' + x + '</li>').join('') + '</ul>' : '') +
+        (s.img ? figure(s.img) : '') + '</section>';
+    };
+    const sub = [p.org, p.date].filter(Boolean).join(' · ');
+    $('detail').innerHTML =
+      '<a class="d-back" href="#feat-' + FEATURED.indexOf(p) + '">← 프로젝트 목록으로</a>' +
+      '<header class="d-head"><div class="eyebrow">' + sub + '</div><h1 id="detailTitle" tabindex="-1">' + p.title + '</h1>' +
+      '<p class="lead">' + d.lead + '</p></header>' +
+      '<dl class="d-meta">' + d.meta.map((m) => '<div><dt>' + m[0] + '</dt><dd>' + m[1] + '</dd></div>').join('') + '</dl>' +
+      (d.stack ? '<div class="d-stack">' + tagList(d.stack) + '</div>' : '') +
+      (d.cover ? figure(d.cover, 'd-cover') : '') +
+      '<div class="d-body">' + d.sections.map(sec).join('') +
+      (d.links ? '<div class="d-links">' + d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>').join('') + '</div>' : '') +
+      '</div>' +
+      '<nav class="d-nav" aria-label="다른 프로젝트">' +
+      (prev ? '<a class="prev" href="' + '#p/' + prev.id + '"><small>← 이전 프로젝트</small><b>' + prev.title + '</b></a>' : '') +
+      (next ? '<a class="next" href="' + '#p/' + next.id + '"><small>다음 프로젝트 →</small><b>' + next.title + '</b></a>' : '') +
+      '</nav>';
+    document.title = stripTags(p.title) + ' · ' + PROFILE.name;
+  };
+
+  // 주소(#p/<id>)에 따라 메인과 상세를 바꿔 보여 준다
+  const mainEl = $('top');
+  const detailEl = $('detail');
+  const route = () => {
+    const m = location.hash.match(/^#p\/([\w-]+)$/);
+    const p = m && ALL_PROJECTS.find((x) => x.id === m[1]);
+    if (p) {
+      renderDetail(p);
+      mainEl.hidden = true;
+      detailEl.hidden = false;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      $('detailTitle').focus({ preventScroll: true });
+      return;
+    }
+    const wasDetail = !detailEl.hidden;
+    detailEl.hidden = true;
+    mainEl.hidden = false;
+    document.title = PROFILE.name + ' · Personal Brand';
+    if (wasDetail) {
+      // 숨겨져 있던 메인으로 돌아오면 브라우저가 앵커로 스크롤하지 못하므로 직접 이동한다
+      const target = location.hash.length > 1 && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target) {
+        target.classList.add('in');
+        target.scrollIntoView({ block: 'center', behavior: 'instant' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    }
+  };
+  window.addEventListener('hashchange', route);
+  route();
 
   $('plist').innerHTML = OTHERS.map((p, i) =>
     '<li class="reveal" id="proj-' + i + '" data-cat="' + p.cat + '"><div class="date">' + p.date + '</div>' +
