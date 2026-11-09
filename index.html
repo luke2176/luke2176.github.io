@@ -319,6 +319,7 @@
   .d-feat .d-fig { margin-top: 18px; }
   /* 단계 흐름(직접 그린 도식) */
   .d-flow { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 20px; counter-reset: flow; }
+  @media (min-width: 761px) { .d-flow { grid-template-columns: repeat(var(--cols, 4), 1fr); } }
   .d-flow li { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px 18px; }
   .d-flow .n { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; color: var(--accent); }
   .d-flow b { display: block; margin-top: 4px; font-size: 17px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.4; }
@@ -396,6 +397,7 @@
     font-size: clamp(18px, 2.4vw, 22px); font-weight: 700; line-height: 1.5; letter-spacing: -0.02em;
   }
   .d-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 20px; }
+  @media (min-width: 761px) { .d-items[style] { grid-template-columns: repeat(var(--cols), 1fr); } }
   .d-items div { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; }
   .d-items dt { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
   .d-items dd { margin-top: 6px; font-size: 15px; color: var(--muted); line-height: 1.6; }
@@ -1083,22 +1085,70 @@
       lead: '생성형 AI로 <b>한국어 정치 가짜뉴스 데이터셋 4,000건</b>을 만들어 공개하고, 21개 탐지 모델을 비교해 실제 서비스에 쓸 수 있는 조합을 찾은 연구입니다.',
       meta: [['기간', '2025.03 – 2025.12'], ['소속', '국민대학교 ITIS AI 연구팀'], ['역할', '팀 리더, 논문 제1저자'], ['결과', '지능정보연구(KCI) 게재 · 학회 논문경진대회 동상']],
       stack: ['Python', 'GPT-4o API', 'KLUE-BERT', 'KoBERT', 'Mecab + Doc2Vec', '머신러닝·앙상블'],
-      cover: { src: IMG + 'fakenews-cover.jpg', alt: '한국어 가짜뉴스 탐지 연구 핵심 수치: 데이터셋 4,000건, 21개 모델 비교, F1 0.9966' },
+      cover: { cardOnly: true, src: IMG + 'fakenews-cover.jpg', alt: '한국어 가짜뉴스 탐지 연구 핵심 수치: 데이터셋 4,000건, 21개 모델 비교, F1 0.9966' },
       glance: { stats: [['4,000건', '한국어 가짜뉴스 데이터셋 구축·공개'], ['21개', '탐지 모델 조합 비교'], ['F1 0.9966', '최고 성능 (KLUE-BERT + Voting)']], did: '팀 리더·제1저자로 데이터셋 설계부터 실험, 학술지 게재까지 연구 전 과정을 이끌었습니다.' },
       sections: [
         { h: '문제: 한국어로는 연구할 데이터가 부족했습니다',
-          p: ['생성형 AI가 사람이 쓴 기사와 구분하기 어려운 글을 대량으로 만들면서, 정치 영역의 가짜뉴스가 사회의 정보 신뢰를 위협하고 있습니다. 하지만 한국어는 영어권보다 <b>검증된 데이터셋의 규모와 다양성이 크게 부족</b>하고, 영어 중심으로 학습된 모델은 한국어에서 성능이 떨어집니다. 실제로 기존 한국어 연구 중에는 정확도가 59.8%에 그친 경우도 있었습니다.'] },
-        { h: '방법 1: 생성형 AI로 데이터셋을 만들었습니다',
-          p: ['실제 가짜뉴스는 완전한 거짓보다 <b>사실 일부를 바탕으로 의미를 비트는</b> 경우가 많습니다. 그래서 원문의 핵심 사실(kernel of truth)은 유지한 채 해석과 맥락만 왜곡하도록 지시했습니다.'],
-          flow: [{ t: '최소 제약 생성', d: '원문만 주고 가짜뉴스를 만들게 해 AI의 기본 왜곡 전략 파악' },
-                 { t: '페르소나 + 단계적 사고', d: '명시적 페르소나와 Chain-of-Thought로 조작 전략을 구체화' },
-                 { t: '다중 페르소나 + 조작 수준', d: '여러 페르소나와 조작 강도를 조합해 다양성 확보' },
-                 { t: '비교·통합', d: '세 전략의 결과물을 비교 분석해 하나의 데이터셋으로' },
-                 { t: '조작 기법 분석', d: '분석 프로토콜로 조작 유형을 붙여 확장성 확보' },
-                 { t: '구축·공개', d: '진짜 2,000건 + 가짜 2,000건 = <b>4,000건</b>, GitHub 공개', on: true }],
-          cap: '데이터셋 구축 과정 (생성 모델: GPT-4o 계열)' },
-        { h: '방법 2: 21개 탐지 모델을 비교했습니다',
-          p: ['문장을 숫자로 바꾸는 방식(임베딩) 3가지 — <b>Mecab+Doc2Vec, KoBERT, KLUE-BERT</b> — 에 전통적 머신러닝과 딥러닝 분류기를 조합해 총 21개 모델의 성능을 체계적으로 비교했습니다.'],
+          p: ['생성형 AI가 사람이 쓴 기사와 구분하기 어려운 글을 대량으로 만들면서, 정치 영역의 가짜뉴스가 사회의 정보 신뢰를 위협하고 있습니다. 하지만 한국어는 영어권보다 <b>검증된 데이터셋의 규모와 다양성이 크게 부족</b>하고, 영어 중심으로 학습된 모델은 한국어에서 성능이 떨어집니다. 실제로 기존 한국어 연구 중에는 정확도가 59.8%에 그친 경우도 있었습니다.',
+              '그래서 연구를 두 단계로 설계했습니다. 먼저 <b>생성형 AI 시대의 가짜뉴스를 닮은 한국어 데이터셋</b>을 직접 만들고, 그 위에서 <b>어떤 탐지 모델 조합이 가장 좋은지</b> 비교했습니다.'] },
+        { h: '연구 구조 ①: 데이터셋 구축',
+          flow: [{ n: 'SOURCE', t: 'AI Hub 정치 뉴스', d: '실제 정치 기사(진짜 뉴스)를 원본으로 사용' },
+                 { n: 'STEP 1', t: '생성 전략 3가지 실험', d: 'GPT-4o-mini 2가지, GPT-4o 1가지 방식으로 가짜뉴스 생성' },
+                 { n: 'STEP 2', t: '최적 전략 선택', d: '다중 페르소나 + 조작 수준 방식을 채택', on: true },
+                 { n: 'STEP 3', t: '조작 기법 분석', d: '원본과의 차이를 7가지 기준으로 기록 (메타데이터)' },
+                 { n: 'OUTPUT', t: '가짜뉴스 데이터셋', d: '진짜 2,000건 + 가짜 2,000건, GitHub 공개', on: true }],
+          cap: '논문 그림 1(한국어 가짜뉴스 데이터셋 구축 플로우차트)을 다시 그렸습니다.' },
+        { h: '생성 전략 3가지를 비교했습니다',
+          p: ['모든 전략에 공통으로 둔 대원칙은 <b>“핵심 사실(Kernel of Truth)은 남기고 그 주변의 해석과 맥락만 비튼다”</b>입니다. 실제 가짜뉴스는 완전한 거짓보다 반박하기 어려운 사실 일부를 바탕으로 의미를 비틀어 설득력을 얻기 때문입니다.'],
+          table: { hlRow: 2, head: ['전략', '모델', '방법', '결과'], rows: [
+            ['최소 제약 자율 생성', 'GPT-4o-mini', '원문만 주고 최소한의 지시', '과장·선정적 표현이 과도해 바로 가짜로 보이고, 조작 패턴이 단조로움 → 탐지 난이도 부족'],
+            ['페르소나 + 사고과정', 'GPT-4o-mini', '페르소나 2종 + 4단계 사고과정(Chain-of-Thought)', '고정된 사고 단계 때문에 문장 구조가 반복되고 문체 다양성이 부족'],
+            ['다중 페르소나 + 조작 수준', 'GPT-4o', '간결한 지시 + 페르소나 4종 × 조작 수준 5단계', '문장 구조·어휘·감정 표현의 변이성이 높고 반복이 크게 줄어 <b>최종 채택</b>']] } },
+        { h: '페르소나 4종: 누가 가짜뉴스를 쓰는가',
+          p: ['현실의 가짜뉴스 생태계를 반영하기 위해 <b>언어 스타일, 감정에 호소하는 방식, 프레이밍</b>이 서로 다른 4가지 발화자를 설계했습니다. 오른쪽 숫자는 최종 모델(KLUE-BERT + Voting)의 페르소나별 탐지 정확도입니다.'],
+          items: [['정치부 기자 · 정확도 100%', '기사 문체와 형식을 유지하면서 교묘하게 논조를 비틀고, <b>가짜 정보원을 인용</b>한 뒤 말미에 수사적 질문을 던집니다.'],
+                  ['극성 정치 유튜버(사이버 렉카) · 99%', '의혹을 사실처럼 단정하고 <b>선정적인 단어</b>로 분노와 불안을 자극하며, 객관적 사실에 악의적인 해설을 덧붙입니다.'],
+                  ['음모론 블로거 · 100%', '과도한 단정과 추론으로 숨은 의도를 주장합니다. 이런 패턴은 모델이 쉽게 식별했습니다.'],
+                  ['열성 지지자 커뮤니티 이용자 · 97%', '실제 커뮤니티처럼 자연스러운 감정 표현을 섞습니다. <b>의견과 허위 정보의 경계가 모호</b>해 가장 탐지하기 어려웠습니다.']],
+          cap: '페르소나별 100건 테스트 기준 (논문 표 11)' },
+        { h: '조작 수준 5단계: 얼마나 비트는가',
+          p: ['같은 페르소나라도 조작의 강도를 단계별로 나눠, 아주 미묘한 왜곡부터 완전한 허위까지 데이터셋에 고르게 담았습니다.'],
+          table: { head: ['조작 수준', '방법', '탐지 정확도'], rows: [
+            ['Lv.1', '특정 단어 하나를 바꿔 부정적 뉘앙스 주입', '98%'],
+            ['Lv.2', '발언의 일부만 잘라내 의도 왜곡', '98%'],
+            ['Lv.3', '사적인 대화·표정 등 주관적 정보 추가', '100%'],
+            ['Lv.4', '‘핵심 관계자’ 등 익명의 출처 날조', '100%'],
+            ['Lv.5', '원본과 무관한 100% 허위 정보 주장', '97%']] },
+          cap: '조작 수준별 80건 테스트 기준 (논문 표 12). 미세한 단어 조작(Lv.1·2)도 98%로 잡아냈고, 완전 허위(Lv.5)는 일부가 의견·풍자로 읽혀 가장 낮았습니다.' },
+        { h: '조작 기법 분석: 무엇을 어떻게 비틀었는지 기록',
+          p: ['생성한 가짜뉴스가 의도한 방식으로 조작되었는지 확인하기 위해, AI에게 <b>미디어 리터러시 전문가</b> 역할을 주고 원본과의 차이를 7가지 기준으로 분석해 기록하게 했습니다. 이 기록은 데이터셋 품질 점검에 쓰였고, 공개 후에는 다른 연구자가 조작 방식을 재현하고 활용할 수 있는 <b>메타데이터</b>가 됩니다.'],
+          quote: '원문 제목 “당이 주도적으로 정책 마련하는 게 필요” → 생성된 제목 “정책 주도권 쥐고 민심과 거리 두기?”',
+          table: { head: ['분석 기준', '분석 예시 (정치부 기자 · Lv.1로 생성한 기사)'], rows: [
+            ['핵심 사실', '정책 주도 필요성을 강조한 원문 발언은 그대로 남김'],
+            ['페르소나 특징', '정치부 기자의 객관적 문체를 가장해 비판적 시각을 섞음'],
+            ['조작 수준', '미묘한 뉘앙스 비틀기로 긍정적 발언을 부정적으로 해석'],
+            ['맥락 왜곡', '발언이 정책 주도권을 둘러싼 긴장을 만든다는 식으로 맥락을 바꿈'],
+            ['단어/표현 조작', '중립적인 ‘주도적으로’를 부정적인 ‘정책 주도권 쥐고’로 바꿈'],
+            ['가상 근거 추가', '익명의 ‘관계자’를 인용해 정책 실효성에 의문 제기'],
+            ['선택적 정보', '구체적 실행 방안은 빼고 부정적 해석만 강조']] },
+          cap: '논문 표 4(분석 프로토콜)와 표 9(적용 결과 예시)를 정리했습니다. 연구용으로 생성한 예시입니다.' },
+        { h: '연구 구조 ②: 탐지 모델 실험',
+          flow: [{ n: 'INPUT', t: '데이터셋 4,000건', d: '진짜 2,000건 + 가짜 2,000건' },
+                 { n: 'EMBEDDING', t: '임베딩 3종', d: 'Mecab+Doc2Vec(130차원), KoBERT·KLUE-BERT(768차원)' },
+                 { n: 'EXP 1', t: 'ML/DL 베이스라인', d: 'SVM, MLP, TextCNN' },
+                 { n: 'EXP 2', t: 'ML 앙상블', d: 'XGBoost, LightGBM, CatBoost, RF, ExtraTrees, Voting, Stacking' },
+                 { n: 'EXP 3', t: '파인튜닝', d: 'KoBERT·KLUE-BERT를 이진 분류로 학습, Optuna로 탐색' },
+                 { n: 'EXP 4', t: '강건성 검증', d: 'GPT-4o로 다시 쓴 진짜뉴스 400건으로 일반화 확인' },
+                 { n: 'OUTPUT', t: '최적 모델', d: 'KLUE-BERT + Voting 앙상블', on: true }],
+          cap: '논문 그림 2(가짜뉴스 분류 방법론 플로우차트)를 다시 그렸습니다. 임베딩과 분류기를 조합해 총 21종의 모델을 학습했습니다.' },
+        { h: '실험 설정',
+          table: { head: ['항목', '설정'], rows: [
+            ['평가 방식', 'Stratified K-Fold 교차검증 (k = 5)'],
+            ['평가 지표', 'Accuracy, Precision, Recall, F1-score'],
+            ['파인튜닝 학습', 'AdamW, Gradient Clipping (L2-norm 1.0), 전체 스텝 10% Linear Warmup, Early Stopping (patience 2)'],
+            ['Optuna 탐색 범위', '학습률 1×10⁻⁶ ~ 5×10⁻⁵ · 배치 8 / 16 / 32 · 최대 입력 길이 128 / 256 / 384 · 2~4 epoch']] } },
+        { h: '결과 ①: 가장 좋은 조합',
+          p: ['임베딩은 <b>KLUE-BERT</b>가 모든 핵심 지표에서 가장 좋았고, 교차검증에서도 평균 F1 0.9966, 표준편차 0.0015로 가장 안정적이었습니다. 그 위에서 분류기를 비교한 결과 <b>Voting 앙상블</b>이 최고였습니다. 파인튜닝도 F1 0.9963으로 비슷했지만 연산 자원과 학습 시간이 크게 늘어, 정확도와 효율을 함께 고려해 KLUE-BERT + Voting을 최적 모델로 골랐습니다.'],
           bars: { title: '임베딩 방식별 F1-score', max: 1, items: [
             { l: 'Mecab+Doc2Vec', v: 0.88, txt: '0.85~0.88' },
             { l: 'KoBERT', v: 0.9863, txt: '0.9863' },
@@ -1115,18 +1165,22 @@
             ['RF', '0.9867', '0.9869', '0.9987', '0.9750'],
             ['XGBoost', '0.9866', '0.9897', '0.9937', '0.9866'],
             ['TextCNN', '0.4116', '0.5246', '0.3141', '0.5983']] },
-          cap: '임베딩은 KLUE-BERT가 가장 우수했고(Mecab+Doc2Vec은 논문에 범위로 보고), 그 위에서 분류기를 비교한 결과 Voting 앙상블이 최고였습니다. 출처: 논문 4.2절, 표 10.' },
-        { h: '결과',
-          p: ['최고 조합은 파인튜닝한 모델과 비슷한 정확도를 내면서도 <b>연산 자원이 적게 들어</b> 실제 서비스에 적용하기 좋습니다. GPT-4o로 문체를 다시 쓴 테스트셋 400건에서도 <b>정확도 1.0</b>을 기록해, 모델이 말투가 아니라 가짜뉴스의 구조와 내용 패턴을 학습했음을 확인했습니다.'],
-          list: ['<b>지능정보연구</b> 제31권 제4호 게재 (KCI 등재, 2025.12)', '같은 주제의 「생성형 AI를 활용한 한국어 가짜뉴스 탐지 고도화 연구」로 <b>한국정보기술학회 대학생논문경진대회 동상</b>'] },
+          cap: 'Mecab+Doc2Vec은 논문에 범위로 보고되어 그대로 표시했습니다. 출처: 논문 4.2절, 표 10.' },
+        { h: '결과 ②: 말투가 아니라 허위의 패턴을 배웠는가',
+          p: ['모델이 단순히 <b>생성형 AI 특유의 문체</b>를 가짜로 판단하는 것은 아닌지 확인했습니다. GPT-4o로 진짜뉴스를 다시 쓴 400건(새 사실 추가·선정적 표현 금지, 규칙 필터와 수동 검수)을 학습 데이터와 완전히 분리해 넣었습니다.',
+              '그 결과 <b>Accuracy 1.0, F1-score 1.0</b>으로 모두 ‘진짜뉴스’로 정확히 분류했습니다. 모델이 AI의 말투가 아니라 <b>허위 정보의 구조적 패턴</b>을 학습했다는 뜻입니다.'] },
+        { h: '성과',
+          list: ['<b>지능정보연구</b> 제31권 제4호 게재 (KCI 등재, 2025.12)', '같은 주제의 「생성형 AI를 활용한 한국어 가짜뉴스 탐지 고도화 연구」로 <b>한국정보기술학회 대학생논문경진대회 동상</b>', '한국어 가짜뉴스 데이터셋 4,000건 GitHub 공개'] },
         { h: '제가 맡은 일', mine: true,
           list: ['<b>팀 리더</b>로 연구 주제 설정부터 실험, 학술대회 발표, 학술지 게재까지 연구 전 과정을 이끌었습니다.',
-                 '팀과 함께 GPT-4o 기반 생성 전략을 설계해 데이터셋을 구축했습니다.',
+                 '팀과 함께 페르소나·조작 수준 기반 생성 전략과 조작 기법 분석 프로토콜을 설계해 데이터셋을 구축했습니다.',
                  '임베딩·분류기 조합 실험을 설계해 비교 분석하고, <b>제1저자</b>로 논문을 썼습니다.'] },
         { h: '한계와 다음 단계',
-          p: ['데이터셋이 정치 분야로 한정되어 일반화 능력을 충분히 평가하기 어렵고, 출처 신뢰도나 전파 경로 같은 비텍스트 정보는 다루지 못했습니다. 경제·보건 등 다른 분야로 데이터셋을 넓히는 것이 다음 과제입니다.'] }
+          list: ['테스트셋이 페르소나별 100건, 조작 수준별 80건(총 400건)이라, 한두 건의 오분류로도 정확도가 크게 흔들릴 수 있습니다.',
+                 '가짜뉴스 탐지에서는 <b>단 한 건의 탐지 실패도 큰 사회적 피해</b>로 이어질 수 있어, 97~100%라는 결과만으로 실제 서비스에 쓸 수 있다고 보기는 어렵습니다. 평균 성능보다 안정적인 오류 제어가 핵심입니다.',
+                 '데이터셋이 정치 분야로 한정되어 있고, 출처 신뢰도·전파 경로 같은 비텍스트 정보는 다루지 못했습니다. 경제·보건 등으로 넓히는 것이 다음 과제입니다.'] }
       ],
-      links: [{ label: '논문 보기 (DBpia)', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' }]
+      links: [{ label: '논문 보기 (DBpia)', url: 'https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE12549668' }, { label: '데이터셋 (GitHub)', url: 'https://github.com/KISLABatKMU/GPT-4o_Korean_Political_Fake_News' }]
     }
   };
 
@@ -1269,12 +1323,12 @@
         (s.quote ? '<blockquote class="d-quote">' + s.quote + '</blockquote>' : '') +
         (s.stats ? '<div class="d-stats">' + s.stats.map((x) => '<div><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>' : '') +
         (s.p || []).map((x) => '<p>' + x + '</p>').join('') +
-        (s.items ? '<dl class="d-items">' + s.items.map((x) => '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>').join('') + '</dl>' : '') +
+        (s.items ? '<dl class="d-items"' + (s.items.length === 4 ? ' style="--cols:2"' : '') + '>' + s.items.map((x) => '<div><dt>' + x[0] + '</dt><dd>' + x[1] + '</dd></div>').join('') + '</dl>' : '') +
         (s.list ? '<ul class="d-list">' + s.list.map((x) => '<li>' + x + '</li>').join('') + '</ul>' : '') +
         (s.bars ? '<figure class="d-bars" role="img" aria-label="' + s.bars.title + ': ' + s.bars.items.map((b) => b.l + ' ' + b.txt).join(', ') + '"><figcaption>' + s.bars.title + '</figcaption>' +
           s.bars.items.map((b) => '<div class="row' + (b.hl ? ' hl' : '') + '" title="' + b.l + ': ' + b.txt + '"><span class="l">' + b.l + '</span><span class="track"><span class="bar" style="width:' + (b.v / s.bars.max * 100).toFixed(1) + '%"></span></span><span class="v">' + b.txt + '</span></div>').join('') +
           '<div class="axis"><span>0</span><span>' + (s.bars.max / 2) + '</span><span>' + s.bars.max.toFixed(1) + '</span></div></figure>' : '') +
-        (s.flow ? '<ol class="d-flow">' + s.flow.map((f, fi) => '<li' + (f.on ? ' class="on"' : '') + '><span class="n">' + (f.n || 'STEP ' + (fi + 1)) + '</span>' +
+        (s.flow ? '<ol class="d-flow" style="--cols:' + (s.flow.length <= 5 ? s.flow.length : Math.ceil(s.flow.length / 2)) + '">' + s.flow.map((f, fi) => '<li' + (f.on ? ' class="on"' : '') + '><span class="n">' + (f.n || 'STEP ' + (fi + 1)) + '</span>' +
           (f.tag ? '<span class="tag' + (f.tag === 'AI' ? ' ai' : '') + '">' + f.tag + '</span>' : '') +
           '<b>' + f.t + '</b>' + (f.d ? '<span class="d">' + f.d + '</span>' : '') + '</li>').join('') + '</ol>' : '') +
         (s.lights ? '<div class="d-lights">' + s.lights.map((l) => '<div><i style="--c1:' + l.c[0] + (l.c[1] ? ';--c2:' + l.c[1] + ';--two:block' : '') + '"></i><p><b>' + l.t + '</b><span>' + l.d + '</span></p></div>').join('') + '</div>' : '') +
@@ -1300,7 +1354,7 @@
       (d.stack ? '<div class="d-stack">' + tagList(d.stack) + '</div>' : '') +
       (d.links ? '<div class="d-links">' + d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>').join('') + '</div>' +
         d.links.filter((l) => l.note).map((l) => '<p class="d-link-note">' + l.note + '</p>').join('') : '') +
-      (d.cover ? figure(d.cover, 'd-cover') : '') +
+      (d.cover && !d.cover.cardOnly ? figure(d.cover, 'd-cover') : '') +
       '<div class="d-body">' + d.sections.map(sec).join('') +
       '</div>' +
       '<nav class="d-nav" aria-label="다른 프로젝트">' +
