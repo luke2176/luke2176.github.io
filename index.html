@@ -347,16 +347,6 @@
   .d-lights i::after { background: var(--c2, var(--c1)); display: var(--two, none); }
   .d-lights b { display: block; font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
   .d-lights span { display: block; margin-top: 2px; font-size: 15px; color: var(--muted); }
-  /* 한눈에 보기 */
-  .d-glance { margin-top: 32px; padding: 22px 24px; border-radius: 20px; background: var(--accent-soft); max-width: 900px; }
-  .d-glance .k { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; color: var(--accent); }
-  .d-glance .g-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
-  .d-glance .g-stats div { background: var(--surface); border-radius: 14px; padding: 14px 16px; }
-  .d-glance .g-stats b { display: block; font-size: clamp(22px, 3vw, 30px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; color: var(--accent); }
-  .d-glance .g-stats span { display: block; margin-top: 4px; font-size: 14px; color: var(--muted); line-height: 1.45; }
-  .d-glance .g-did { margin-top: 14px; font-size: 16px; line-height: 1.6; }
-  .d-glance .g-did b { color: var(--accent); margin-right: 6px; }
-  @media (max-width: 560px) { .d-glance .g-stats { grid-template-columns: 1fr; } }
   /* 막대 차트 (한 계열) */
   .d-bars { margin-top: 20px; padding: 20px 22px 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
   .d-bars figcaption { font-size: 15px; font-weight: 800; margin-bottom: 14px; }
@@ -891,8 +881,6 @@
       meta: [['기간', '2026.08 – 현재'], ['팀', '4인 팀 (경영정보학부)'], ['역할', 'PM, 데이터 엔지니어링'], ['결과', '🏆 Vibe Coding Challenge 대상']],
       stack: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'LLM 추출', 'OCR', 'Vercel'],
       cover: { src: IMG + 'konnect-cover.jpg', alt: 'Konnect 로고와 실제 앱 홈·공지 상세 화면' },
-      links: [{ label: 'Konnect 서비스 바로가기', url: 'https://konnect-virid.vercel.app', note: '국민대학교 재학생 전용 서비스라, 가입과 이용은 재학생만 할 수 있습니다.' }],
-      glance: { stats: [['48곳', '학교 게시판 공지를 매일 자동 수집'], ['39명', '재학생 설문으로 문제 검증'], ['대상', 'Vibe Coding Challenge']], did: 'PM으로 문제를 다시 정의하고, 공지 수집 → AI 조건 추출 → 지원 가능 판정까지 이어지는 데이터 파이프라인을 만들었습니다.' },
       sections: [
         { h: '시작: 동문 DB에서 출발해 문제를 다시 정의했습니다',
           p: ['학부장님 인터뷰에서 경영정보학부 동문 DB가 <b>2009년 이후 갱신되지 않았다</b>는 문제를 들었습니다. 처음에는 추천 기반의 동문 DB 시스템을 기획했지만, 개인정보 보호 문제로 DB를 확보하지 못했고 학생회가 이미 엑셀로 소규모 관리를 하고 있었으며, 동문이 꾸준히 쓸 이유도 부족했습니다.',
@@ -965,8 +953,6 @@
       meta: [['기간', '2026.05 – 2026.07'], ['대회', 'KMU x TUIT Global Startup Hackathon 2026 (우즈베키스탄 타슈켄트)'], ['팀', '한국·우즈베키스탄 연합팀'], ['역할', '팀 리더, 개발'], ['결과', '🏆 Global Startup Hackathon 2026 Grand Prize (대상)']],
       stack: ['Python', 'FastAPI', 'Gemini 멀티모달 OCR', '규칙 기반 판정 엔진', '다국어 지식베이스', 'PWA'],
       cover: { src: IMG + 'halal-cover.jpg', alt: 'Halal Lens 마스코트와 실제 판정 결과 화면' },
-      links: [{ label: 'Halal Lens 서비스 바로가기', url: 'https://halal-lens.vercel.app', note: '현재 API 키를 막아 두어, 사진으로 성분표를 읽는 AI 판독 기능은 동작하지 않습니다.' }],
-      glance: { stats: [['30개+', '아이디어를 검토해 하나를 선택'], ['0건', '하람을 할랄로 잘못 판정 (회귀 테스트)'], ['Grand Prize', 'Global Startup Hackathon 2026']], did: '팀 리더로 현지 인터뷰 기반 문제 정의를 이끌고, AI 라벨 판독과 규칙 기반 판정 엔진, 웹앱 개발을 맡았습니다.' },
       sections: [
         { h: '배경: 먹어도 되는지 알 수 없는 수입식품',
           p: ['우즈베키스탄은 인구의 88~94%가 무슬림이고, 2025년부터 할랄 인증 절차가 공식화되었으며 한국 제품의 영향력도 커지고 있습니다. 그런데 수입식품의 성분표는 여러 언어로 적혀 있고 할랄 인증 표시가 없는 경우가 많아, 소비자가 <b>먹어도 되는 식품인지 판단하기 어려웠습니다.</b>'] },
@@ -1018,7 +1004,6 @@
       meta: [['기간', '2026.03 – 2026.06'], ['수업', '국민대학교 캡스톤디자인 (2팀)'], ['역할', 'PM'], ['결과', '🏆 캡스톤디자인 경진대회 우수상']],
       stack: ['디자인씽킹', '심층 인터뷰(IDI)', 'Dify AI Agent', 'RAG', 'Figma', 'Stitch'],
       cover: { src: IMG + 'dori-cover.jpg', alt: '도리 채팅과 메시지 진단 화면' },
-      glance: { stats: [['7 → 4', '심층 인터뷰로 찾은 관점 중 핵심 4개에 집중'], ['5단계', '온보딩부터 발송까지 코칭 흐름 설계'], ['우수상', '캡스톤디자인 경진대회']], did: 'PM으로 디자인씽킹 방법론을 적용해 문제 정의부터 Dify 프로토타입까지 이끌었습니다.' },
       sections: [
         { h: '세 사람의 문제를 동시에 봤습니다',
           items: [['주니어 (실사용자)', '“팀장님께 보고 메일을 보내기 전에 썼다 지우기를 반복해요. 말투가 딱딱한지, 지금 보내도 되는지 걱정돼요.”'],
@@ -1086,7 +1071,6 @@
       meta: [['기간', '2025.03 – 2025.12'], ['소속', '국민대학교 ITIS AI 연구팀'], ['역할', '팀 리더, 논문 제1저자'], ['결과', '지능정보연구(KCI) 게재 · 학회 논문경진대회 동상']],
       stack: ['Python', 'GPT-4o API', 'KLUE-BERT', 'KoBERT', 'Mecab + Doc2Vec', '머신러닝·앙상블'],
       cover: { cardOnly: true, src: IMG + 'fakenews-cover.jpg', alt: '한국어 가짜뉴스 탐지 연구 핵심 수치: 데이터셋 4,000건, 21개 모델 비교, F1 0.9966' },
-      glance: { stats: [['4,000건', '한국어 가짜뉴스 데이터셋 구축·공개'], ['21개', '탐지 모델 조합 비교'], ['F1 0.9966', '최고 성능 (KLUE-BERT + Voting)']], did: '팀 리더·제1저자로 데이터셋 설계부터 실험, 학술지 게재까지 연구 전 과정을 이끌었습니다.' },
       sections: [
         { h: '문제: 한국어로는 연구할 데이터가 부족했습니다',
           p: ['생성형 AI가 사람이 쓴 기사와 구분하기 어려운 글을 대량으로 만들면서, 정치 영역의 가짜뉴스가 사회의 정보 신뢰를 위협하고 있습니다. 하지만 한국어는 영어권보다 <b>검증된 데이터셋의 규모와 다양성이 크게 부족</b>하고, 영어 중심으로 학습된 모델은 한국어에서 성능이 떨어집니다. 실제로 기존 한국어 연구 중에는 정확도가 59.8%에 그친 경우도 있었습니다.',
@@ -1347,9 +1331,6 @@
       '<a class="d-back" href="#feat-' + FEATURED.indexOf(p) + '">← 프로젝트 목록으로</a>' +
       '<header class="d-head"><div class="eyebrow">' + sub + '</div><h1 id="detailTitle" tabindex="-1">' + p.title + '</h1>' +
       '<p class="lead">' + d.lead + '</p></header>' +
-      (d.glance ? '<section class="d-glance" aria-label="한눈에 보기"><div class="k">한눈에 보기</div><div class="g-stats">' +
-        d.glance.stats.map((g) => '<div><b>' + g[0] + '</b><span>' + g[1] + '</span></div>').join('') + '</div>' +
-        '<p class="g-did"><b>내가 한 일</b>' + d.glance.did + '</p></section>' : '') +
       '<dl class="d-meta">' + d.meta.map((m) => '<div><dt>' + m[0] + '</dt><dd>' + m[1] + '</dd></div>').join('') + '</dl>' +
       (d.stack ? '<div class="d-stack">' + tagList(d.stack) + '</div>' : '') +
       (d.links ? '<div class="d-links">' + d.links.map((l) => '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>').join('') + '</div>' +
