@@ -197,10 +197,8 @@ async function askGemini(key, question) {
   err.upstream = true;
   throw err;
 }
-function clientIp(req) {
-  const fwd = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  return fwd || String(req.headers['x-real-ip'] || '') || (req.socket && req.socket.remoteAddress) || 'unknown';
-}
+
+const { clientIp, secondsToNextHour } = ratelimit;
 
 // 같은 사이트에서 온 요청만 받는다. (Origin 이 없으면 브라우저 밖의 요청이며 횟수 제한으로 막는다)
 function sameOrigin(req) {
@@ -211,11 +209,6 @@ function sameOrigin(req) {
   } catch {
     return false;
   }
-}
-
-// 다음 정시까지 남은 초. 방문자 한도는 정시 단위로 초기화된다.
-function secondsToNextHour(now = new Date()) {
-  return Math.max(1, 3600 - (now.getUTCMinutes() * 60 + now.getUTCSeconds()));
 }
 
 module.exports = async function handler(req, res) {
