@@ -532,13 +532,12 @@
   .contact h2 { font-size: clamp(28px, 5vw, 54px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.15; }
   .contact p { margin-top: 14px; opacity: .7; max-width: 520px; }
   .contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
-  .contact-links a, .contact-links button {
+  .contact-links a {
     padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 15px;
     border: 1px solid color-mix(in srgb, var(--bg) 40%, transparent);
   }
-  .contact-links a:hover, .contact-links button:hover { background: var(--bg); color: var(--ink); }
-  /* 이메일: 메일 앱이 없어도 주소를 보고 복사할 수 있게 주소를 그대로 보여 준다 */
-  .contact-links button { font-family: inherit; color: inherit; background: transparent; cursor: pointer; }
+  .contact-links a:hover { background: var(--bg); color: var(--ink); }
+  /* 이메일(다시 넣는 경우): 메일 앱이 없어도 주소를 볼 수 있게 글자로 함께 보여 준다 */
   .contact-links .mail-addr { font-weight: 500; opacity: .8; margin-left: 6px; }
   .contact-links a.todo { border-style: dashed; opacity: .55; pointer-events: none; }
 
@@ -1757,47 +1756,12 @@
   // 연락처
   $('contactTitle').innerHTML = PROFILE.contactTitle;
   $('contactText').textContent = PROFILE.contactText;
-  // 이메일(mailto:)은 새 창으로 열지 않는다. 새 창으로 열면 메일 앱이 없는 PC에서 빈 탭만 뜬다.
-  // 대신 주소를 그대로 보여 주고 복사 버튼을 둔다.
+  // 이메일(mailto:)을 다시 넣는 경우를 위해: 새 창으로 열지 않고(메일 앱이 없는 PC에서 빈 탭만 뜸) 주소를 글자로 보여 준다.
   $('contactLinks').innerHTML = PROFILE.contacts.map((c) => {
     if (!c.url) return '<a class="todo">' + c.label + ' (추가 예정)</a>';
-    if (isMail(c.url)) {
-      const addr = mailAddr(c.url);
-      return '<a href="' + c.url + '">' + c.label + '<span class="mail-addr">' + addr + '</span></a>' +
-        '<button type="button" class="copy-mail" data-addr="' + addr + '">주소 복사</button>';
-    }
+    if (isMail(c.url)) return '<a href="' + c.url + '">' + c.label + '<span class="mail-addr">' + mailAddr(c.url) + '</span></a>';
     return '<a href="' + c.url + '" target="_blank" rel="noopener">' + c.label + ' ↗</a>';
-  }).join('') + '<span class="sr-only" id="copyLive" aria-live="polite"></span>';
-
-  // 주소 복사: 클립보드 API가 막힌 환경(http, 오래된 브라우저)에서는 임시 입력칸을 선택해 복사한다.
-  const copyText = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch (e) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.append(ta);
-      ta.select();
-      let ok = false;
-      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
-      ta.remove();
-      return ok;
-    }
-  };
-  $('contactLinks').addEventListener('click', async (e) => {
-    const btn = e.target.closest('.copy-mail');
-    if (!btn) return;
-    const ok = await copyText(btn.dataset.addr);
-    const msg = ok ? '복사했어요 ✓' : '복사하지 못했어요. 주소를 직접 선택해 주세요.';
-    btn.textContent = ok ? '복사했어요 ✓' : '복사 실패';
-    $('copyLive').textContent = msg;
-    clearTimeout(btn._t);
-    btn._t = setTimeout(() => { btn.textContent = '주소 복사'; }, 2000);
-  });
+  }).join('');
   $('footer').textContent = '© ' + new Date().getFullYear() + ' ' + PROFILE.nameEn;
 
   // 제목 아이콘: data-icon 속성이 있는 제목 앞에 아이콘을 붙인다
