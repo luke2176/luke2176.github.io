@@ -526,11 +526,14 @@
   .contact h2 { font-size: clamp(28px, 5vw, 54px); font-weight: 800; letter-spacing: -0.04em; line-height: 1.15; }
   .contact p { margin-top: 14px; opacity: .7; max-width: 520px; }
   .contact-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
-  .contact-links a {
+  .contact-links a, .contact-links button {
     padding: 12px 22px; border-radius: 999px; font-weight: 700; font-size: 15px;
     border: 1px solid color-mix(in srgb, var(--bg) 40%, transparent);
   }
-  .contact-links a:hover { background: var(--bg); color: var(--ink); }
+  .contact-links a:hover, .contact-links button:hover { background: var(--bg); color: var(--ink); }
+  /* 이메일: 메일 앱이 없어도 주소를 보고 복사할 수 있게 주소를 그대로 보여 준다 */
+  .contact-links button { font-family: inherit; color: inherit; background: transparent; cursor: pointer; }
+  .contact-links .mail-addr { font-weight: 500; opacity: .8; margin-left: 6px; }
   .contact-links a.todo { border-style: dashed; opacity: .55; pointer-events: none; }
 
   /* 방명록 */
@@ -548,6 +551,7 @@
   .gb-form input:focus, .gb-form textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
   .gb-form textarea { resize: vertical; min-height: 96px; }
   .gb-form .count { font-size: 12px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .gb-form .count.over { color: #d33; font-weight: 700; }
   .gb-submit {
     font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
     padding: 13px 22px; border-radius: 999px; border: none;
@@ -708,11 +712,11 @@
       <form class="gb-form reveal" id="gbForm" autocomplete="off" novalidate>
         <div>
           <label for="gbName">이름</label>
-          <input type="text" id="gbName" name="name" maxlength="20" required placeholder="이름 (최대 20자)">
+          <input type="text" id="gbName" name="name" maxlength="40" required placeholder="이름 (최대 20자)">
         </div>
         <div>
           <label for="gbMessage">메시지</label>
-          <textarea id="gbMessage" name="message" maxlength="140" required placeholder="메시지 (최대 140자)"></textarea>
+          <textarea id="gbMessage" name="message" maxlength="280" required placeholder="메시지 (최대 140자)"></textarea>
           <div class="count" id="gbCount">0 / 140</div>
         </div>
         <button type="submit" class="gb-submit" id="gbSubmit">남기기</button>
@@ -1326,6 +1330,8 @@
     const title = i.url ? '<a href="' + i.url + '" target="_blank" rel="noopener">' + i.t + ' ↗</a>' : i.t;
     return '<li><div class="t">' + title + '</div><div class="m">' + i.m + '</div></li>';
   }).join('');
+  const isMail = (url) => /^mailto:/i.test(url);
+  const mailAddr = (url) => url.replace(/^mailto:/i, '').split('?')[0];
 
   // 프로필
   document.title = PROFILE.name + ' · AI Product Manager 포트폴리오';
@@ -1625,8 +1631,12 @@
     const c = NOW.contact || {};
     if (c.preferred) {
       const link = PROFILE.contacts.find((x) => x.label === c.preferred && x.url);
-      const name = link ? '<a href="' + link.url + '" target="_blank" rel="noopener">' + c.preferred + ' ↗</a>' : c.preferred;
-      cards.push(card('mail', '연락 방법', '<p class="big">' + name + '</p>' + (c.response ? '<p>' + c.response + '</p>' : '')));
+      const name = !link ? c.preferred
+        : isMail(link.url) ? '<a href="' + link.url + '">' + c.preferred + '</a>'
+        : '<a href="' + link.url + '" target="_blank" rel="noopener">' + c.preferred + ' ↗</a>';
+      // 메일 앱이 없는 PC에서도 연락할 수 있게 주소를 글자로 함께 보여 준다
+      const addr = link && isMail(link.url) ? '<p>' + mailAddr(link.url) + '</p>' : '';
+      cards.push(card('mail', '연락 방법', '<p class="big">' + name + '</p>' + addr + (c.response ? '<p>' + c.response + '</p>' : '')));
     }
     grid.innerHTML = cards.join('');
     $('nowUpdated').textContent = NOW.updated ? '마지막 업데이트 ' + NOW.updated : '';
@@ -1643,7 +1653,7 @@
     const examples = $('askExamples');
     const MAX = 300;
     const KEEP = 5; // 화면에 남길 최근 질문 수
-    const EXAMPLES = ['데이터 분석 경험이 있나요?', 'PM으로 이끈 프로젝트는?', '개발은 어디까지 할 수 있나요?', '어떻게 연락하면 되나요?'];
+    const EXAMPLES = ['데이터 분석 경험이 있나요?', 'PM으로 이끈 프로젝트는?', '수상 경력은?', '개발은 어디까지 할 수 있나요?', '어떻게 연락하면 되나요?'];
     let busy = false;
 
     const mk = (tag, cls, text) => {
@@ -1718,9 +1728,47 @@
   // 연락처
   $('contactTitle').innerHTML = PROFILE.contactTitle;
   $('contactText').textContent = PROFILE.contactText;
-  $('contactLinks').innerHTML = PROFILE.contacts.map((c) => c.url
-    ? '<a href="' + c.url + '" target="_blank" rel="noopener">' + c.label + ' ↗</a>'
-    : '<a class="todo">' + c.label + ' (추가 예정)</a>').join('');
+  // 이메일(mailto:)은 새 창으로 열지 않는다. 새 창으로 열면 메일 앱이 없는 PC에서 빈 탭만 뜬다.
+  // 대신 주소를 그대로 보여 주고 복사 버튼을 둔다.
+  $('contactLinks').innerHTML = PROFILE.contacts.map((c) => {
+    if (!c.url) return '<a class="todo">' + c.label + ' (추가 예정)</a>';
+    if (isMail(c.url)) {
+      const addr = mailAddr(c.url);
+      return '<a href="' + c.url + '">' + c.label + '<span class="mail-addr">' + addr + '</span></a>' +
+        '<button type="button" class="copy-mail" data-addr="' + addr + '">주소 복사</button>';
+    }
+    return '<a href="' + c.url + '" target="_blank" rel="noopener">' + c.label + ' ↗</a>';
+  }).join('') + '<span class="sr-only" id="copyLive" aria-live="polite"></span>';
+
+  // 주소 복사: 클립보드 API가 막힌 환경(http, 오래된 브라우저)에서는 임시 입력칸을 선택해 복사한다.
+  const copyText = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+      ta.remove();
+      return ok;
+    }
+  };
+  $('contactLinks').addEventListener('click', async (e) => {
+    const btn = e.target.closest('.copy-mail');
+    if (!btn) return;
+    const ok = await copyText(btn.dataset.addr);
+    const msg = ok ? '복사했어요 ✓' : '복사하지 못했어요. 주소를 직접 선택해 주세요.';
+    btn.textContent = ok ? '복사했어요 ✓' : '복사 실패';
+    $('copyLive').textContent = msg;
+    clearTimeout(btn._t);
+    btn._t = setTimeout(() => { btn.textContent = '주소 복사'; }, 2000);
+  });
   $('footer').textContent = '© ' + new Date().getFullYear() + ' ' + PROFILE.nameEn;
 
   // 제목 아이콘: data-icon 속성이 있는 제목 앞에 아이콘을 붙인다
@@ -1803,21 +1851,27 @@
       }
     };
 
+    // 글자 수는 서버(DB)와 같은 기준으로 센다: 이모지도 1글자.
+    // (입력칸의 maxlength 는 이모지를 2로 세므로 넉넉히 두고, 실제 제한은 여기서 검사한다)
+    const len = (s) => Array.from(s).length;
+
     msgEl.addEventListener('input', () => {
-      countEl.textContent = msgEl.value.length + ' / ' + MSG_MAX;
+      const n = len(msgEl.value);
+      countEl.textContent = n + ' / ' + MSG_MAX;
+      countEl.classList.toggle('over', n > MSG_MAX);
     });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = nameEl.value.trim();
       const message = msgEl.value.trim();
-      if (name.length < 1 || name.length > NAME_MAX) {
-        setNote('이름은 1~' + NAME_MAX + '자여야 합니다.', 'err');
+      if (len(name) < 1 || len(name) > NAME_MAX) {
+        setNote('이름은 1~' + NAME_MAX + '자여야 합니다. (지금 ' + len(name) + '자)', 'err');
         nameEl.focus();
         return;
       }
-      if (message.length < 1 || message.length > MSG_MAX) {
-        setNote('메시지는 1~' + MSG_MAX + '자여야 합니다.', 'err');
+      if (len(message) < 1 || len(message) > MSG_MAX) {
+        setNote('메시지는 1~' + MSG_MAX + '자여야 합니다. (지금 ' + len(message) + '자)', 'err');
         msgEl.focus();
         return;
       }
@@ -1832,7 +1886,12 @@
           body: JSON.stringify({ name, message }),
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || ('status ' + res.status));
+        if (res.status >= 400 && res.status < 500 && data && typeof data.error === 'string') {
+          // 서버가 입력을 거부함: 저장되지 않았다. 서버가 알려 준 이유를 그대로 보여 주고 입력은 유지한다.
+          setNote('저장되지 않았습니다. ' + data.error, 'err');
+          return;
+        }
+        if (!res.ok) throw new Error('status ' + res.status);
         // 성공: 입력 초기화 + 목록 맨 위에 추가
         if (data.item) {
           if (stateEl.textContent) stateEl.textContent = '';
@@ -1843,10 +1902,11 @@
         nameEl.value = '';
         msgEl.value = '';
         countEl.textContent = '0 / ' + MSG_MAX;
+        countEl.classList.remove('over');
         setNote('남겼습니다. 고맙습니다!', 'ok');
       } catch (err) {
         // 입력 내용은 유지(유실 방지)
-        setNote('잠시 후 다시 시도해 주세요.', 'err');
+        setNote('저장하지 못했습니다. 잠시 후 다시 시도해 주세요. 입력한 내용은 그대로 남아 있습니다.', 'err');
       } finally {
         submitEl.disabled = false;
         submitEl.textContent = original;
