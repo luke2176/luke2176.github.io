@@ -32,19 +32,37 @@ function baseHeaders() {
   return headers;
 }
 
-// 최신순으로 방명록 목록을 가져온다.
-async function listGuestbook(limit = 100) {
+// 최신순으로 방명록을 한 페이지 가져온다. (누락 방지: 잘라내지 않고 페이지로 나눠 모두 읽을 수 있게 함)
+//  - before: 이 id보다 작은(더 오래된) 글만. 마지막으로 받은 글의 id를 넘기면 다음 페이지.
+//  - limit+1건을 요청해서 다음 페이지가 더 있는지(hasMore)를 정확히 판단한다.
+//  - total: 첫 페이지(before 없음)일 때만 전체 글 수를 함께 받는다.
+async function listGuestbook({ limit = 20, before = null } = {}) {
   assertEnv();
-  const url =
-    restUrl('guestbook') +
-    '?select=id,name,message,created_at&order=created_at.desc&limit=' +
-    encodeURIComponent(String(limit));
-  const res = await fetch(url, { headers: baseHeaders() });
+  const params = new URLSearchParams({
+    select: 'id,name,message,created_at',
+    order: 'id.desc',
+    limit: String(limit + 1),
+  });
+  if (before !== null) params.set('id', 'lt.' + before);
+
+  const headers = baseHeaders();
+  if (before === null) headers.Prefer = 'count=exact';
+
+  const res = await fetch(restUrl('guestbook') + '?' + params.toString(), { headers });
   if (!res.ok) {
     const body = await res.text();
     throw new Error('목록 조회 실패 (' + res.status + '): ' + body);
   }
-  return res.json();
+  const rows = await res.json();
+  if (!Array.isArray(rows)) {
+    throw new Error('목록 응답 형식이 올바르지 않습니다.');
+  }
+  const m = /\/(\d+)$/.exec(res.headers.get('content-range') || '');
+  return {
+    items: rows.slice(0, limit),
+    hasMore: rows.length > limit,
+    total: m ? Number(m[1]) : null,
+  };
 }
 
 // 방명록 항목 1건을 추가하고 생성된 행을 반환한다.
@@ -60,6 +78,9 @@ async function insertGuestbook(name, message) {
     throw new Error('작성 실패 (' + res.status + '): ' + body);
   }
   const rows = await res.json();
+  if (!Array.isArray(rows) || !rows[0]) {
+    throw new Error('저장 응답에 생성된 행이 없습니다.');
+  }
   return rows[0];
 }
 

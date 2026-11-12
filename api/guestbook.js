@@ -1,13 +1,26 @@
 // Vercel 서버리스 함수: /api/guestbook
-//   GET  → 방명록 목록(최신순) 조회
-//   POST → 방명록 작성 { name, message }
+//   GET  ?limit=20&before=<id> → 방명록 한 페이지(최신순). 응답 { items, hasMore, total? }
+//   POST { name, message }     → 방명록 작성. 응답 201 { item }
 //
-// service_role 키는 _supabase.js 를 통해 서버에서만 사용한다.
+// Supabase 비밀키는 _supabase.js 를 통해 서버에서만 사용한다.
+// 비밀키는 RLS를 우회하므로, 입력 검사와 허용 범위 제한은 모두 이 파일(서버)이 책임진다.
 
 const { listGuestbook, insertGuestbook } = require('./_supabase');
 
 const NAME_MAX = 20;
 const MESSAGE_MAX = 140;
+const PAGE_DEFAULT = 20;
+const PAGE_MAX = 50;
+const BODY_MAX_BYTES = 10 * 1024;
+const ALLOWED_FIELDS = ['name', 'message'];
+
+// 이름: 제어문자(줄바꿈 포함) 금지. 메시지: 줄바꿈(\n)·탭만 허용, 나머지 제어문자 금지.
+// 제어문자 중 \u0000 은 Postgres text 에 저장할 수 없다.
+const NAME_FORBIDDEN = /[\u0000-\u001F\u007F]/;
+const MESSAGE_FORBIDDEN = /[\u0000-\u0008\u000B-\u001F\u007F]/;
+
+// DB의 char_length 와 같은 기준(유니코드 글자 수)으로 센다. 이모지도 1글자.
+const charLength = (s) => Array.from(s).length;
 
 function sendJson(res, status, payload) {
   res.statusCode = status;
@@ -18,18 +31,32 @@ function sendJson(res, status, payload) {
 }
 
 // 요청 본문을 JSON으로 읽는다. (Vercel이 파싱해 주면 그대로 사용)
+// 반환: 파싱된 값, 해석 불가면 null, 너무 크면 undefined
 async function readJsonBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  if (typeof req.body === 'string' && req.body.length) {
+  let parsed;
+  try {
+    // Vercel 런타임은 JSON 본문을 이 속성 접근 시점에 파싱하며, 형식이 잘못되면 예외를 던진다.
+    parsed = req.body;
+  } catch {
+    return null;
+  }
+  if (parsed && typeof parsed === 'object') return parsed;
+  if (typeof parsed === 'string' && parsed.length) {
+    if (Buffer.byteLength(parsed) > BODY_MAX_BYTES) return undefined;
     try {
-      return JSON.parse(req.body);
+      return JSON.parse(parsed);
     } catch {
       return null;
     }
   }
   const chunks = [];
-  for await (const chunk of req) chunks.push(chunk);
-  if (!chunks.length) return {};
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > BODY_MAX_BYTES) return undefined;
+    chunks.push(chunk);
+  }
+  if (!chunks.length) return null;
   try {
     return JSON.parse(Buffer.concat(chunks).toString('utf8'));
   } catch {
@@ -37,41 +64,90 @@ async function readJsonBody(req) {
   }
 }
 
-function validate(name, message) {
+// 입력 검사. 문제가 있으면 오류 문구를, 없으면 null 을 돌려준다.
+function validate(body) {
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return '요청 본문은 { name, message } 형태의 JSON이어야 합니다.';
+  }
+  const unknown = Object.keys(body).filter((k) => !ALLOWED_FIELDS.includes(k));
+  if (unknown.length) {
+    return '허용하지 않는 항목이 있습니다: ' + unknown.join(', ');
+  }
+  const { name, message } = body;
   if (typeof name !== 'string' || typeof message !== 'string') {
     return '이름과 메시지를 문자열로 보내주세요.';
   }
   const n = name.trim();
   const m = message.trim();
-  if (n.length < 1 || n.length > NAME_MAX) {
+  if (charLength(n) < 1 || charLength(n) > NAME_MAX) {
     return '이름은 1~' + NAME_MAX + '자여야 합니다.';
   }
-  if (m.length < 1 || m.length > MESSAGE_MAX) {
+  if (charLength(m) < 1 || charLength(m) > MESSAGE_MAX) {
     return '메시지는 1~' + MESSAGE_MAX + '자여야 합니다.';
   }
+  if (NAME_FORBIDDEN.test(n)) {
+    return '이름에 사용할 수 없는 문자가 있습니다.';
+  }
+  if (MESSAGE_FORBIDDEN.test(m)) {
+    return '메시지에 사용할 수 없는 문자가 있습니다.';
+  }
   return null;
+}
+
+// 조회 파라미터 검사. 숫자 형태가 아니면 거부한다. (DB 필터에 임의 문자열이 들어가지 않게)
+function parseListQuery(req) {
+  const url = new URL(req.url || '/', 'http://localhost');
+  const limitRaw = url.searchParams.get('limit');
+  const beforeRaw = url.searchParams.get('before');
+
+  let limit = PAGE_DEFAULT;
+  if (limitRaw !== null) {
+    if (!/^\d{1,3}$/.test(limitRaw)) return { error: 'limit 은 숫자여야 합니다.' };
+    limit = Number(limitRaw);
+    if (limit < 1 || limit > PAGE_MAX) {
+      return { error: 'limit 은 1~' + PAGE_MAX + ' 사이여야 합니다.' };
+    }
+  }
+
+  let before = null;
+  if (beforeRaw !== null) {
+    if (!/^\d{1,15}$/.test(beforeRaw) || Number(beforeRaw) < 1) {
+      return { error: 'before 는 양의 정수여야 합니다.' };
+    }
+    before = Number(beforeRaw);
+  }
+  return { limit, before };
 }
 
 module.exports = async function handler(req, res) {
   try {
     if (req.method === 'GET') {
-      const items = await listGuestbook();
-      return sendJson(res, 200, { items });
+      const q = parseListQuery(req);
+      if (q.error) return sendJson(res, 400, { error: q.error });
+      const page = await listGuestbook({ limit: q.limit, before: q.before });
+      const payload = { items: page.items, hasMore: page.hasMore };
+      if (q.before === null) payload.total = page.total;
+      return sendJson(res, 200, payload);
     }
 
     if (req.method === 'POST') {
-      const body = await readJsonBody(req);
-      if (body === null) {
-        return sendJson(res, 400, { error: '본문을 해석할 수 없습니다.' });
+      const type = String(req.headers['content-type'] || '').toLowerCase();
+      if (!type.startsWith('application/json')) {
+        return sendJson(res, 415, { error: 'Content-Type 은 application/json 이어야 합니다.' });
       }
-      const name = body.name;
-      const message = body.message;
-      const invalid = validate(name, message);
+      const body = await readJsonBody(req);
+      if (body === undefined) {
+        return sendJson(res, 413, { error: '요청이 너무 큽니다.' });
+      }
+      const invalid = validate(body);
       if (invalid) {
         return sendJson(res, 400, { error: invalid });
       }
-      const row = await insertGuestbook(name.trim(), message.trim());
-      return sendJson(res, 201, { item: row });
+      // 클라이언트가 보낸 id, created_at 등은 쓰지 않는다. 검사를 통과한 두 항목만 저장한다.
+      const row = await insertGuestbook(body.name.trim(), body.message.trim());
+      return sendJson(res, 201, {
+        item: { id: row.id, name: row.name, message: row.message, created_at: row.created_at },
+      });
     }
 
     res.setHeader('Allow', 'GET, POST');
