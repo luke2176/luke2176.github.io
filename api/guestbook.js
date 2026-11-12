@@ -1,12 +1,17 @@
 // Vercel 서버리스 함수: /api/guestbook
 //   GET  ?limit=20&before=<id> → 방명록 한 페이지(최신순). 응답 { items, hasMore, total? }
-//   POST { name, message }     → 방명록 작성. 응답 201 { item }
+//   POST { name, message }     → 방명록 작성. 응답 201 { item }, 횟수 초과 시 429
 //
 // Supabase 비밀키는 _supabase.js 를 통해 서버에서만 사용한다.
 // 비밀키는 RLS를 우회하므로, 입력 검사와 허용 범위 제한은 모두 이 파일(서버)이 책임진다.
+// 스팸 방지: 작성은 방문자(IP 해시)별 시간당 IP_PER_HOUR 개, 사이트 전체 하루(한국 시간) SITE_PER_DAY 개까지.
+//   _ratelimit.js(Supabase ask_take, 구간 이름 'gb:')로 센다. 입력 검사를 통과한 요청만 센다.
 
 const { listGuestbook, insertGuestbook } = require('./_supabase');
+const ratelimit = require('./_ratelimit');
 
+const IP_PER_HOUR = 5;
+const SITE_PER_DAY = 100;
 const NAME_MAX = 20;
 const MESSAGE_MAX = 140;
 const PAGE_DEFAULT = 20;
@@ -142,6 +147,16 @@ module.exports = async function handler(req, res) {
       const invalid = validate(body);
       if (invalid) {
         return sendJson(res, 400, { error: invalid });
+      }
+      // 횟수 제한. 확인에 실패하면(설정 없음·Supabase 오류) 저장하지 않고 500 으로 막는다.
+      if (!ratelimit.configured()) throw new Error('횟수 제한 설정(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)이 없습니다.');
+      const r = await ratelimit.take(ratelimit.clientIp(req), { prefix: 'gb', ipLimit: IP_PER_HOUR, dayLimit: SITE_PER_DAY });
+      if (r === 'ip') {
+        res.setHeader('Retry-After', String(ratelimit.secondsToNextHour()));
+        return sendJson(res, 429, { error: '글은 한 시간에 ' + IP_PER_HOUR + '개까지 남길 수 있어요. 잠시 후 다시 시도해 주세요.' });
+      }
+      if (r === 'day') {
+        return sendJson(res, 429, { error: '오늘은 방명록 글이 많아 잠시 막아 두었어요. 내일 다시 남겨 주세요.' });
       }
       // 클라이언트가 보낸 id, created_at 등은 쓰지 않는다. 검사를 통과한 두 항목만 저장한다.
       const row = await insertGuestbook(body.name.trim(), body.message.trim());

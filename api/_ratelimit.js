@@ -1,6 +1,7 @@
-// 서버 전용 모듈: AI 질문하기(/api/ask) 요청 횟수 제한.
+// 서버 전용 모듈: 요청 횟수 제한. AI 질문하기(/api/ask, 구간 이름 'ask:')와 방명록 작성(/api/guestbook, 'gb:')이 함께 쓴다.
 // Supabase 의 public.ask_take() 함수로 "방문자별 시간당 횟수"와 "사이트 전체 하루 횟수"를 한 번에 센다.
-// 질문 내용과 IP 원문은 저장하지 않는다. IP 는 서버 비밀키로 HMAC 해시한 앞부분만 쓴다.
+// (함수 이름은 처음 만든 기능 기준이지만, 구간 이름을 인자로 받으므로 기능별로 따로 센다. 표 public.ask_usage 를 같이 쓴다.)
+// 질문·글 내용과 IP 원문은 저장하지 않는다. IP 는 서버 비밀키로 HMAC 해시한 앞부분만 쓴다.
 
 const crypto = require('crypto');
 
@@ -33,17 +34,30 @@ function ipKey(ip) {
   return full.slice(0, 4).map((x) => x.replace(/^0+(?=.)/, '')).join(':') + '::/64';
 }
 
-// 시간 구간 이름. 하루 기준은 한국 시간.
-function buckets(ip, now = new Date()) {
+// 요청한 방문자의 IP. Vercel 은 x-forwarded-for 를 엣지에서 덮어쓰므로 첫 항목을 쓴다.
+function clientIp(req) {
+  const fwd = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return fwd || String(req.headers['x-real-ip'] || '') || (req.socket && req.socket.remoteAddress) || 'unknown';
+}
+
+// 다음 정시까지 남은 초. 방문자 한도는 정시(UTC) 단위로 초기화된다.
+function secondsToNextHour(now = new Date()) {
+  return Math.max(1, 3600 - (now.getUTCMinutes() * 60 + now.getUTCSeconds()));
+}
+
+// 시간 구간 이름. 하루 기준은 한국 시간. prefix 로 기능을 나눈다('ask' / 'gb').
+const PREFIXES = new Set(['ask', 'gb']);
+function buckets(ip, prefix = 'ask', now = new Date()) {
+  if (!PREFIXES.has(prefix)) throw new Error('알 수 없는 횟수 제한 구분: ' + prefix);
   const hash = crypto.createHmac('sha256', SERVICE_ROLE_KEY).update(ipKey(ip)).digest('base64url').slice(0, 22);
   const utcHour = now.toISOString().slice(0, 13).replace(/\D/g, '');            // 2026110503
   const kstDay = new Date(now.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/\D/g, ''); // 20261105
-  return { ip: 'ask:ip:' + hash + ':' + utcHour, day: 'ask:day:' + kstDay };
+  return { ip: prefix + ':ip:' + hash + ':' + utcHour, day: prefix + ':day:' + kstDay };
 }
 
 // 반환: 'ok' | 'ip' | 'day'. 실패하면 예외.
-async function take(ip, { ipLimit, dayLimit }) {
-  const b = buckets(ip);
+async function take(ip, { ipLimit, dayLimit, prefix = 'ask' }) {
+  const b = buckets(ip, prefix);
   const res = await fetch(SUPABASE_URL.replace(/\/+$/, '') + '/rest/v1/rpc/ask_take', {
     method: 'POST',
     headers: headers(),
@@ -60,4 +74,4 @@ async function take(ip, { ipLimit, dayLimit }) {
   return out;
 }
 
-module.exports = { configured, take, ipKey };
+module.exports = { configured, take, ipKey, clientIp, secondsToNextHour, buckets };

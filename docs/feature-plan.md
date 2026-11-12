@@ -68,6 +68,10 @@
   - `update` / `delete`: 익명 금지(정책 미부여).
 - `service_role` 키는 서버 함수 환경변수로만 사용. 클라이언트·저장소에 노출하지 않는다.
 - 버튼 연타 방지(전송 중 비활성). 캡차 등 고급 스팸 방지는 이번 최소 버전 범위 밖.
+- (2026-11-12 추가) 작성 횟수 제한: 방문자(IP를 서버 비밀키로 HMAC 해시, IPv6는 /64)별 시간당 5개, 사이트 전체 하루(한국 시간) 100개. 넘으면 429와 안내 문구(방문자 한도는 `Retry-After`).
+  - AI 질문의 Supabase `public.ask_take()`·`public.ask_usage`를 그대로 쓰고 구간 이름만 `gb:`로 나눈다(`api/_ratelimit.js`). DB 변경 없음. SQL은 `docs/feature-ideas.md` 참고.
+  - 입력 검사를 통과한 요청만 센다. 횟수 확인이 실패하면 저장하지 않고 500(막는 쪽으로 실패).
+  - 로컬 `npm run dev`가 실제 Supabase를 가리키면 로컬에서 쓴 글도 실제 한도에 들어간다.
 
 ### Supabase SQL (참고)
 
