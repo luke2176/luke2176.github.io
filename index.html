@@ -763,13 +763,12 @@
     // 값이 비어 있으면 점선 자리 표시로 나옵니다
     contacts: [
       { label: 'LinkedIn', url: 'https://www.linkedin.com/in/luke2176' },
-      { label: 'GitHub', url: 'https://github.com/luke2176' },
-      { label: 'Email', url: 'mailto:luke2176@kookmin.ac.kr' }
+      { label: 'GitHub', url: 'https://github.com/luke2176' }
     ]
   };
 
   const STATS = [
-    { value: '4.31', unit: '/4.5', label: '학점 (경영정보 전공)' },
+    { value: '4.31', unit: '/4.5', label: '학점 (비즈니스IT 전공)' },
     { value: '6', unit: '회', label: '수상' },
     { value: '2', unit: '편', label: '논문' },
     { value: '4', unit: '곳', label: '실무 경력' }
@@ -1303,7 +1302,7 @@
     // 작업에 쓰는 도구
     tools: ['Notion', 'Figma', '미리캔버스', 'Google Sheets', 'SQL', 'Python', 'GitHub', 'Claude Code', 'Kiro'],
     // 연락 방법: label 은 PROFILE.contacts 의 label 과 같게 쓰면 그 링크가 붙는다.
-    contact: { preferred: 'Email', response: '' } // response 예: '보통 하루 안에 답장'
+    contact: { preferred: '', response: '' } // preferred 예: 'LinkedIn' / response 예: '보통 하루 안에 답장'
   };
   // =====================================================================
 
