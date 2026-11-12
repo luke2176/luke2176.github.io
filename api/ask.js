@@ -98,10 +98,10 @@ function contactEmail() {
   const m = pageData().match(/mailto:([^'"\s?]+)/i);
   return m ? m[1] : '';
 }
-// "이메일(주소)로" 또는 주소를 못 찾으면 "연락처(이메일)로"
+// "이메일(주소)로" 또는 페이지에 이메일이 없으면 "페이지의 연락처 섹션으로"
 function emailPhrase() {
   const email = contactEmail();
-  return email ? '이메일(' + email + ')로' : '연락처(이메일)로';
+  return email ? '이메일(' + email + ')로' : '페이지의 연락처 섹션으로';
 }
 
 function systemPrompt() {
