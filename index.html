@@ -287,6 +287,12 @@
   .plist .plink::after { content: ""; position: absolute; inset: 0; }
   .plist li:hover .t { color: var(--accent); }
   .plist .more { margin-top: 0; font-size: 13px; }
+  .plist .award-badge + .more { margin-left: 12px; }
+  .plist .feat-badge {
+    display: inline-block; margin-right: 8px; vertical-align: 2px;
+    font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent);
+  }
 
   /* 프로젝트 상세 */
   #detail { padding-top: 40px; padding-bottom: 40px; }
@@ -649,7 +655,7 @@
     <h3 class="sub-head reveal" data-icon="star">대표 프로젝트</h3>
     <div class="featured" id="featured"></div>
     <div class="more-head reveal">
-      <h3 class="sub-head" data-icon="list">그 외 프로젝트·활동</h3>
+      <h3 class="sub-head" data-icon="list">모든 프로젝트·활동</h3>
       <div class="filters" id="filters"></div>
     </div>
     <ul class="plist" id="plist"></ul>
@@ -827,38 +833,43 @@
     }
   ];
 
+  // '모든 프로젝트·활동' 목록의 분류. 대표 프로젝트(FEATURED)와 그 외(OTHERS)에 모두 cat 으로 붙인다.
+  //   plan: PM으로 문제를 정하고 서비스를 설계한 것 / build: AI로 실제 결과물을 만든 것
+  //   data: 실험·데이터 분석·연구 / edu: 교육 과정·세미나
   const CATEGORIES = [
     { id: 'all', label: '전체' },
-    { id: 'pm', label: '기획·PM' },
-    { id: 'dev', label: '개발' },
-    { id: 'edu', label: '교육·활동' }
+    { id: 'plan', label: '서비스 기획' },
+    { id: 'build', label: 'AI 제작·개발' },
+    { id: 'data', label: '데이터·리서치' },
+    { id: 'edu', label: '교육·세미나' }
   ];
 
   // 대표 프로젝트: 크게 보여 줄 것만. facts 는 [라벨, 내용] 형식
   // 카드를 누르면 아래 DETAILS 의 같은 id 상세 페이지로 이동한다
+  // cat·role 은 '모든 프로젝트·활동' 목록용. 목록의 한 줄 설명은 facts 의 '무엇', 배지는 '결과'를 그대로 쓴다.
   const FEATURED = [
-    { id: 'konnect', date: '2026.08 – 현재', title: 'Konnect', org: '',
+    { id: 'konnect', cat: 'plan', role: 'PM', date: '2026.08 – 현재', title: 'Konnect', org: '',
       facts: [
         ['무엇', '교내 공지를 <b>학생 맞춤형</b>으로 제공하고, 선배·졸업생과 네트워크를 만드는 AI 서비스 (개발·운영 중)'],
         ['역할', 'PM, 데이터 엔지니어링'],
         ['결과', '🏆 Vibe Coding Challenge <b>대상</b> · 초기 회원 25명']
       ],
       tags: ['프로젝트 관리', '시스템 디자인'], roles: ['plan', 'build'] },
-    { id: 'halal-lens', date: '2026.05 – 2026.07', title: 'Halal Lens', org: 'KMU x TUIT Global Startup Hackathon 2026',
+    { id: 'halal-lens', cat: 'build', role: '팀 리더·개발', date: '2026.05 – 2026.07', title: 'Halal Lens', org: 'KMU x TUIT Global Startup Hackathon 2026',
       facts: [
         ['무엇', '<b>OCR로 할랄과 하람을 구별</b>해 주는 AI 서비스'],
         ['역할', '팀 리더, 개발'],
         ['결과', '🏆 Global Startup Hackathon <b>Grand Prize</b>']
       ],
       tags: ['디자인사고', 'AI 에이전트'], roles: ['plan', 'build'] },
-    { id: 'dori', date: '2026.03 – 2026.06', title: '도리', org: '국민대학교',
+    { id: 'dori', cat: 'plan', role: 'PM', date: '2026.03 – 2026.06', title: '도리', org: '국민대학교',
       facts: [
         ['무엇', '<b>사내 소통을 관리하는 B2B AI Agent</b> 서비스'],
         ['역할', 'PM. 생성형 AI와 디자인씽킹으로 기획하고 구축'],
         ['결과', '🏆 캡스톤디자인 경진대회 <b>우수상</b>']
       ],
       tags: ['프로젝트 관리', '디자인사고'], roles: ['plan', 'build'] },
-    { id: 'fake-news', date: '2025.07 – 2025.12', title: '한국어 가짜뉴스 탐지 연구', org: '국민대학교 ITIS AI 연구팀',
+    { id: 'fake-news', cat: 'data', role: '팀 리더·제1저자', date: '2025.07 – 2025.12', title: '한국어 가짜뉴스 탐지 연구', org: '국민대학교 ITIS AI 연구팀',
       facts: [
         ['무엇', '생성형 AI로 <b>한국어 가짜뉴스 데이터셋</b>을 구축하고 탐지 모델을 비교 분석'],
         ['역할', '팀 리더, 논문 제1저자'],
@@ -867,31 +878,31 @@
       tags: ['생성형 AI', '데이터셋 구축'], roles: ['plan', 'validate'] }
   ];
 
-  // 그 외 프로젝트·활동: 한 줄 목록
+  // 그 외 프로젝트·활동: '모든 프로젝트·활동' 목록에 대표 프로젝트와 함께 날짜순으로 나온다
   const OTHERS = [
-    { cat: 'edu', date: '2026.09 – 현재', role: '리서치', title: '아이트래킹 기반 광고 구매의향 실험', org: '국민대학교 UROP', roles: ['discover', 'validate'],
+    { cat: 'data', date: '2026.09 – 현재', role: '리서치', title: '아이트래킹 기반 광고 구매의향 실험', org: '국민대학교 UROP', roles: ['discover', 'validate'],
       desc: '실용재·쾌락재, 실사용 환경 유무로 조건을 나눠 <b>인스타그램 광고 아이트래킹 실험</b> 설계, 적은 표본으로 관점을 찾는 <b>Q-Sort</b> 실습' },
-    { cat: 'pm', date: '2026.09', role: 'PM·UX/UI', title: 'UniQ', org: 'AWS Kirothon', roles: ['plan'],
+    { cat: 'plan', date: '2026.09', role: 'PM·UX/UI', title: 'UniQ', org: 'AWS Kirothon', roles: ['plan'],
       desc: '대학 공지 <b>맞춤 추천</b>과 일정 관리 AI 에이전트 프로토타입' },
-    { cat: 'pm', date: '2026.05 – 2026.06', role: 'PM', title: 'K*path', org: '국민대학교', roles: ['plan'],
+    { cat: 'plan', date: '2026.05 – 2026.06', role: 'PM', title: 'K*path', org: '국민대학교', roles: ['plan'],
       desc: 'NCS 기반 직무 매핑과 로드맵을 제공하는 <b>On-premise AI 학사시스템</b> 설계' },
-    { cat: 'dev', date: '2026.04 – 2026.05', role: '개발', title: '공생의 나무 챗봇', org: 'HUSS x 뤼튼테크놀로지스', roles: ['build'],
+    { cat: 'build', date: '2026.04 – 2026.05', role: '개발', title: '공생의 나무 챗봇', org: 'HUSS x 뤼튼테크놀로지스', roles: ['build'],
       desc: 'Claude Code로 만든 <b>역량 성장 대시보드</b>와 진로 상담 챗봇' },
-    { cat: 'pm', date: '2026.01 – 2026.06', role: 'PM', title: 'AI 콘텐츠 자동화 사업', org: '(주)모자이크아이씨티', roles: ['plan'],
+    { cat: 'build', date: '2026.01 – 2026.06', role: 'PM', title: 'AI 콘텐츠 자동화 사업', org: '(주)모자이크아이씨티', roles: ['plan'],
       desc: '(주)피노라글로벌 <b>외국인 한국어 교육 영상</b> 사업 수주' },
     { cat: 'edu', date: '2025.12 – 2026.02', role: '교육 과정', title: '커머셜 AI 융복합 기획자 정예과정', org: '청년취업사관학교 강서캠퍼스', roles: ['plan'],
       desc: '서울시·SBA 주관 350시간 과정. 생성형 AI 도구 활용, 서비스 기획과 <b>실무 프로젝트</b> 수행' },
-    { cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: 'AI 홍보 콘텐츠 제작', org: '(주)성안당', roles: ['plan'],
+    { cat: 'build', date: '2025.09 – 2025.12', role: 'PM', title: 'AI 홍보 콘텐츠 제작', org: '(주)성안당', roles: ['plan'],
       desc: '출판사 홍보용 <b>AI 숏폼·롱폼 콘텐츠</b> 제작, 예산 편성과 운영' },
     { cat: 'edu', date: '2025.09 – 2025.11', role: '세미나 활동', title: 'ITIS 딥러닝 세미나', org: '국민대학교 ITIS', roles: ['validate'],
       desc: '학회 <b>딥러닝 세미나</b> 참여' },
-    { id: 'dream-production', cat: 'pm', date: '2025.09 – 2025.12', role: 'PM', title: 'Dream Production', org: '국민대학교', roles: ['discover', 'plan'],
+    { id: 'dream-production', cat: 'plan', date: '2025.09 – 2025.12', role: 'PM', title: 'Dream Production', org: '국민대학교', roles: ['discover', 'plan'],
       desc: 'UX 리서치 방법론으로 기획한 <b>꿈 기록·영상 생성 AI 서비스</b>' },
     { cat: 'edu', date: '2025.07 – 2025.08', role: '교육 과정', title: 'UX/UI 교육 과정', org: '서초구청', roles: ['discover'],
       desc: '생성형 AI와 Figma를 활용한 <b>UX/UI 기획</b> 교육' },
-    { cat: 'pm', date: '2025.06 – 2025.08', role: '서비스 기획', title: 'KT AICC 기획 프로젝트', org: '(주)웅진씽크빅 · 미래내일 일경험', roles: ['plan'],
+    { cat: 'plan', date: '2025.06 – 2025.08', role: '서비스 기획', title: 'KT AICC 기획 프로젝트', org: '(주)웅진씽크빅 · 미래내일 일경험', roles: ['plan'],
       desc: 'KT 실무 과제로 <b>회의·고객문의 자동화 AI Agent</b> 기획 (GPT·NotebookLM·RPA/API·Notion)' },
-    { cat: 'edu', date: '2025.01 – 2025.02', role: '데이터 분석', title: 'E커머스 CRM 전략 기획', org: '데이터스테이션 DSA 18기', roles: ['validate'],
+    { cat: 'data', date: '2025.01 – 2025.02', role: '데이터 분석', title: 'E커머스 CRM 전략 기획', org: '데이터스테이션 DSA 18기', roles: ['validate'],
       desc: 'Python을 활용한 <b>E커머스 CRM 전략</b> 기획', award: '🏆 실무 데이터 분석 프로젝트 최우수상' },
     { cat: 'edu', date: '2024.08 – 2025.08', role: '세미나 활동', title: 'YLA 19기', org: '아름다운서당',
       desc: '인문 고전 세미나와 사회과학 케이스 스터디' }
@@ -1323,7 +1334,7 @@
   };
   const icon = (name) => '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[name] + '</svg>';
   const PILLAR_ICONS = ['search', 'layout', 'chart', 'code'];
-  const CAT_ICONS = { all: 'list', pm: 'layout', dev: 'code', edu: 'book' };
+  const CAT_ICONS = { all: 'list', plan: 'layout', build: 'code', data: 'chart', edu: 'book' };
   const tagList = (tags) => tags && tags.length
     ? '<ul class="tags">' + tags.map((t) => '<li>' + t + '</li>').join('') + '</ul>' : '';
   const rows = (items) => items.map((i) => {
@@ -1460,16 +1471,29 @@
   window.addEventListener('hashchange', route);
   route();
 
-  $('plist').innerHTML = OTHERS.map((p, i) =>
-    '<li class="reveal" id="proj-' + i + '" data-cat="' + p.cat + '"><div class="date">' + p.date + '</div>' +
-    '<div><div class="t">' + (p.id && DETAILS[p.id] ? '<a class="plink" href="#p/' + p.id + '">' + p.title + '</a>' : p.title) + (p.org ? '<small>' + p.org + '</small>' : '') + '</div>' +
+  // 모든 프로젝트·활동: 대표 프로젝트(FEATURED)와 그 외(OTHERS)를 합쳐 시작 시점 최신순으로 보여 준다.
+  //  - 대표 프로젝트는 '대표' 배지를 달고, 설명은 facts 의 '무엇', 배지는 '결과'(첫 항목)를 쓴다. 데이터는 복사하지 않는다.
+  //  - id: 그 외 항목은 'proj-<OTHERS 순번>'(역할로 보기·상세 페이지의 돌아가기 링크가 쓴다), 대표 프로젝트는 'all-feat-<순번>'.
+  const fact = (p, label) => { const f = p.facts.find((x) => x[0] === label); return f ? f[1] : ''; };
+  const startKey = (date) => { const m = String(date).match(/(\d{4})\.(\d{2})/); return m ? Number(m[1]) * 100 + Number(m[2]) : 0; };
+  const ALL_LIST = FEATURED.map((p, i) => ({
+    ...p, featured: true, domId: 'all-feat-' + i,
+    desc: fact(p, '무엇'),
+    award: stripTags(fact(p, '결과')).split(' · ')[0]
+  })).concat(OTHERS.map((p, i) => ({ ...p, domId: 'proj-' + i })))
+    .sort((a, b) => startKey(b.date) - startKey(a.date));
+
+  $('plist').innerHTML = ALL_LIST.map((p) =>
+    '<li class="reveal" id="' + p.domId + '" data-cat="' + p.cat + '"><div class="date">' + p.date + '</div>' +
+    '<div><div class="t">' + (p.featured ? '<span class="feat-badge">대표</span>' : '') +
+    (p.id && DETAILS[p.id] ? '<a class="plink" href="#p/' + p.id + '">' + p.title + '</a>' : p.title) + (p.org ? '<small>' + p.org + '</small>' : '') + '</div>' +
     '<div class="d">' + p.desc + '</div>' +
     (p.award ? '<span class="award-badge">' + p.award + '</span>' : '') +
     (p.id && DETAILS[p.id] ? '<span class="more">자세히 보기 →</span>' : '') + '</div>' +
     '<div class="role">' + icon(CAT_ICONS[p.cat]) + p.role + '</div></li>').join('');
 
   $('filters').innerHTML = CATEGORIES.map((c) => {
-    const n = c.id === 'all' ? OTHERS.length : OTHERS.filter((p) => p.cat === c.id).length;
+    const n = c.id === 'all' ? ALL_LIST.length : ALL_LIST.filter((p) => p.cat === c.id).length;
     if (!n) return '';
     return '<button data-cat="' + c.id + '"' + (c.id === 'all' ? ' class="on"' : '') + '>' + icon(CAT_ICONS[c.id]) + c.label + '<span class="n">' + n + '</span></button>';
   }).join('');
@@ -1501,11 +1525,11 @@
     const SOURCES = [
       { group: '경력', kind: () => '경력', prefix: 'exp', items: EXPERIENCE, title: (x) => x.title + ' · ' + x.org },
       { group: '프로젝트', kind: () => '대표 프로젝트', prefix: 'feat', items: FEATURED, title: (x) => x.title },
-      // 교육 과정·대외활동(cat: 'edu')은 프로젝트와 구분해 표시한다.
-      { group: (x) => x.cat === 'edu' ? '교육·활동' : '프로젝트', kind: (x) => x.cat === 'edu' ? '교육·활동' : '프로젝트',
+      // 교육 과정·세미나(cat: 'edu')는 프로젝트와 구분해 표시한다.
+      { group: (x) => x.cat === 'edu' ? '교육·세미나' : '프로젝트', kind: (x) => x.cat === 'edu' ? '교육·세미나' : '프로젝트',
         prefix: 'proj', items: OTHERS, title: (x) => x.title }
     ];
-    const GROUPS = ['경력', '프로젝트', '교육·활동'];
+    const GROUPS = ['경력', '프로젝트', '교육·세미나'];
     const live = $('roleLive');
     let current = null;
     let hitTimer = null;
@@ -1531,7 +1555,7 @@
             });
           }
         }));
-        // 요약: "기획·설계의 근거: 경력 1건 · 프로젝트 9건 · 교육·활동 1건" (0건인 묶음은 뺀다)
+        // 요약: "기획·설계의 근거: 경력 1건 · 프로젝트 9건 · 교육·세미나 1건" (0건인 묶음은 뺀다)
         const sum = el('p', 'sum', pillar.title + '의 근거: ');
         const parts = [];
         GROUPS.forEach((g) => {
