@@ -577,10 +577,14 @@
   .gb-item .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .gb-item .msg { margin-top: 6px; color: var(--muted); white-space: pre-wrap; }
   .gb-state { color: var(--muted); font-size: 15px; padding: 8px 0; }
-  .gb-state button {
+  .gb-state button, .gb-more {
     font: inherit; font-weight: 700; color: var(--accent); background: none;
     border: none; cursor: pointer; padding: 0; margin-left: 8px; text-decoration: underline;
   }
+  .gb-total { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+  .gb-footer { margin-top: 14px; }
+  .gb-footer .gb-more { margin-left: 0; }
+  .gb-more:disabled { opacity: .55; cursor: not-allowed; text-decoration: none; }
 
   footer { padding: 36px 0 48px; font-size: 13px; color: var(--muted); text-align: center; }
 
@@ -729,8 +733,10 @@
         <p class="gb-note" id="gbNote" role="status" aria-live="polite"></p>
       </form>
       <div class="reveal">
-        <div class="gb-state" id="gbState">불러오는 중…</div>
+        <div class="gb-total" id="gbTotal" aria-live="polite"></div>
+        <div class="gb-state" id="gbState" role="status">불러오는 중…</div>
         <div class="gb-list" id="gbList"></div>
+        <div class="gb-footer" id="gbFooter"></div>
       </div>
     </div>
   </section>
@@ -1823,12 +1829,23 @@
     const noteEl = $('gbNote');
     const stateEl = $('gbState');
     const listEl = $('gbList');
+    const totalEl = $('gbTotal');
+    const footerEl = $('gbFooter');
     const API = '/api/guestbook';
+    const PAGE = 20;
     const NAME_MAX = 20;
     const MSG_MAX = 140;
 
-    const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // 서버(DB)와 같은 기준으로 글자 수를 센다. 이모지도 1글자.
+    const len = (s) => Array.from(s).length;
+
+    // 사용자 입력은 항상 textContent 로만 넣는다. HTML로 해석되지 않는다.
+    const mk = (tag, cls, text) => {
+      const n = document.createElement(tag);
+      if (cls) n.className = cls;
+      if (text != null) n.textContent = text;
+      return n;
+    };
 
     const fmtDate = (iso) => {
       const d = new Date(iso);
@@ -1838,45 +1855,120 @@
         ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
     };
 
-    const itemHTML = (it) =>
-      '<article class="gb-item"><div class="head">' +
-      '<span class="who">' + esc(it.name) + '</span>' +
-      '<span class="when">' + esc(fmtDate(it.created_at)) + '</span></div>' +
-      '<div class="msg">' + esc(it.message) + '</div></article>';
+    const isItem = (it) => !!it && typeof it.id === 'number' &&
+      typeof it.name === 'string' && typeof it.message === 'string';
+
+    const itemNode = (it) => {
+      const art = mk('article', 'gb-item');
+      const head = mk('div', 'head');
+      head.append(mk('span', 'who', it.name), mk('span', 'when', fmtDate(it.created_at)));
+      art.append(head, mk('div', 'msg', it.message));
+      return art;
+    };
+
+    // 목록 상태
+    let loaded = false;   // 첫 페이지를 성공적으로 받았는가
+    let oldestId = null;  // 화면에 있는 가장 오래된 글의 id (다음 페이지 기준점)
+    let hasMore = false;  // 더 오래된 글이 남아 있는가
+    let total = null;     // 전체 글 수 (서버가 알려준 값)
+    let busy = false;     // "더 보기" 중복 요청 방지
+    let moreError = '';
+    let firstReq = 0;     // 첫 페이지 요청 순번 (오래된 응답 무시용)
 
     const setNote = (text, kind) => {
       noteEl.textContent = text || '';
       noteEl.className = 'gb-note' + (kind ? ' ' + kind : '');
     };
 
-    const render = (items) => {
-      if (!items.length) {
-        stateEl.textContent = '첫 메시지를 남겨보세요.';
-        listEl.innerHTML = '';
-        return;
+    const setState = (text, label, action) => {
+      stateEl.textContent = text || '';
+      if (label && action) {
+        const b = mk('button', null, label);
+        b.type = 'button';
+        b.addEventListener('click', action);
+        stateEl.append(b);
       }
-      stateEl.textContent = '';
-      listEl.innerHTML = items.map(itemHTML).join('');
     };
 
-    const load = async () => {
-      stateEl.innerHTML = '불러오는 중…';
+    const renderTotal = () => {
+      totalEl.textContent = (loaded && total !== null)
+        ? '총 ' + total + '개 중 ' + listEl.children.length + '개 표시'
+        : '';
+    };
+
+    const renderFooter = () => {
+      footerEl.textContent = '';
+      if (!loaded) return;
+      if (moreError) footerEl.append(mk('p', 'gb-note err', moreError));
+      if (hasMore) {
+        const b = mk('button', 'gb-more', '더 보기');
+        b.type = 'button';
+        b.addEventListener('click', loadMore);
+        footerEl.append(b);
+      }
+    };
+
+    // 한 페이지를 받아 형식을 확인한다. 형식이 이상하면 "비어 있음"이 아니라 실패로 처리한다.
+    const fetchPage = async (before) => {
+      const qs = new URLSearchParams({ limit: String(PAGE) });
+      if (before !== null) qs.set('before', String(before));
+      const res = await fetch(API + '?' + qs.toString(), { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error('status ' + res.status);
+      const data = await res.json();
+      if (!data || !Array.isArray(data.items) || typeof data.hasMore !== 'boolean' ||
+          !data.items.every(isItem)) {
+        throw new Error('unexpected response');
+      }
+      return data;
+    };
+
+    const loadFirst = async () => {
+      const mine = ++firstReq;
+      moreError = '';
+      setState('불러오는 중…');
       try {
-        const res = await fetch(API, { headers: { Accept: 'application/json' } });
-        if (!res.ok) throw new Error('status ' + res.status);
-        const data = await res.json();
-        render(Array.isArray(data.items) ? data.items : []);
+        const data = await fetchPage(null);
+        if (mine !== firstReq) return;
+        listEl.textContent = '';
+        data.items.forEach((it) => listEl.append(itemNode(it)));
+        loaded = true;
+        hasMore = data.hasMore;
+        oldestId = data.items.length ? data.items[data.items.length - 1].id : null;
+        total = typeof data.total === 'number' ? data.total : null;
+        setState(data.items.length ? '' : '첫 메시지를 남겨보세요.');
       } catch (e) {
-        listEl.innerHTML = '';
-        stateEl.innerHTML = '메시지를 불러오지 못했습니다.<button type="button" id="gbRetry">다시 시도</button>';
-        const retry = $('gbRetry');
-        if (retry) retry.addEventListener('click', load);
+        if (mine !== firstReq) return;
+        loaded = false;
+        hasMore = false;
+        total = null;
+        listEl.textContent = '';
+        setState('메시지를 불러오지 못했습니다.', '다시 시도', loadFirst);
       }
+      renderTotal();
+      renderFooter();
     };
 
-    // 글자 수는 서버(DB)와 같은 기준으로 센다: 이모지도 1글자.
-    // (입력칸의 maxlength 는 이모지를 2로 세므로 넉넉히 두고, 실제 제한은 여기서 검사한다)
-    const len = (s) => Array.from(s).length;
+    const loadMore = async () => {
+      if (busy || oldestId === null) return;
+      busy = true;
+      moreError = '';
+      const btn = footerEl.querySelector('.gb-more');
+      if (btn) { btn.disabled = true; btn.textContent = '불러오는 중…'; }
+      const mine = firstReq;
+      try {
+        const data = await fetchPage(oldestId);
+        if (mine === firstReq) {
+          data.items.forEach((it) => listEl.append(itemNode(it)));
+          if (data.items.length) oldestId = data.items[data.items.length - 1].id;
+          hasMore = data.hasMore && data.items.length > 0;
+        }
+      } catch (e) {
+        if (mine === firstReq) moreError = '더 불러오지 못했습니다. 다시 시도해 주세요.';
+      }
+      busy = false;
+      renderTotal();
+      renderFooter();
+    };
 
     msgEl.addEventListener('input', () => {
       const n = len(msgEl.value);
@@ -1886,10 +1978,12 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      if (submitEl.disabled) return;
       const name = nameEl.value.trim();
       const message = msgEl.value.trim();
+      // 전송 전 검사 (서버도 같은 규칙으로 다시 검사한다)
       if (len(name) < 1 || len(name) > NAME_MAX) {
-        setNote('이름은 1~' + NAME_MAX + '자여야 합니다. (지금 ' + len(name) + '자)', 'err');
+        setNote('이름은 1~' + NAME_MAX + '자여야 합니다.', 'err');
         nameEl.focus();
         return;
       }
@@ -1898,45 +1992,50 @@
         msgEl.focus();
         return;
       }
+      // 저장 중
       submitEl.disabled = true;
       const original = submitEl.textContent;
       submitEl.textContent = '저장 중…';
-      setNote('', null);
+      setNote('저장 중입니다…', null);
       try {
         const res = await fetch(API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, message }),
         });
-        const data = await res.json().catch(() => ({}));
-        if (res.status >= 400 && res.status < 500 && data && typeof data.error === 'string') {
-          // 서버가 입력을 거부함: 저장되지 않았다. 서버가 알려 준 이유를 그대로 보여 주고 입력은 유지한다.
+        const data = await res.json().catch(() => null);
+        if (res.status === 201 && data && isItem(data.item)) {
+          // 성공: 서버가 저장했다고 돌려준 글이 있을 때만 성공으로 처리
+          nameEl.value = '';
+          msgEl.value = '';
+          countEl.textContent = '0 / ' + MSG_MAX;
+          countEl.classList.remove('over');
+          if (loaded) {
+            listEl.prepend(itemNode(data.item));
+            if (oldestId === null) oldestId = data.item.id;
+            if (total !== null) total += 1;
+            setState('');
+            renderTotal();
+          } else {
+            await loadFirst(); // 목록을 아직 못 불러온 상태였다면 다시 불러온다
+          }
+          setNote('남겼습니다. 고맙습니다!', 'ok');
+        } else if (res.status >= 400 && res.status < 500 && data && typeof data.error === 'string') {
+          // 서버가 입력을 거부함: 저장되지 않았다. 입력은 유지한다.
           setNote('저장되지 않았습니다. ' + data.error, 'err');
-          return;
-        }
-        if (!res.ok) throw new Error('status ' + res.status);
-        // 성공: 입력 초기화 + 목록 맨 위에 추가
-        if (data.item) {
-          if (stateEl.textContent) stateEl.textContent = '';
-          listEl.insertAdjacentHTML('afterbegin', itemHTML(data.item));
         } else {
-          await load();
+          throw new Error('status ' + res.status);
         }
-        nameEl.value = '';
-        msgEl.value = '';
-        countEl.textContent = '0 / ' + MSG_MAX;
-        countEl.classList.remove('over');
-        setNote('남겼습니다. 고맙습니다!', 'ok');
       } catch (err) {
-        // 입력 내용은 유지(유실 방지)
-        setNote('저장하지 못했습니다. 잠시 후 다시 시도해 주세요. 입력한 내용은 그대로 남아 있습니다.', 'err');
+        // 네트워크/서버 오류: 저장 여부가 확실하지 않으므로 성공이라고 하지 않는다. 입력은 유지한다.
+        setNote('저장됐는지 확인하지 못했습니다. 목록을 확인한 뒤 필요하면 다시 시도해 주세요. 입력한 내용은 그대로 남아 있습니다.', 'err');
       } finally {
         submitEl.disabled = false;
         submitEl.textContent = original;
       }
     });
 
-    load();
+    loadFirst();
   })();
 
   // 스크롤 등장
